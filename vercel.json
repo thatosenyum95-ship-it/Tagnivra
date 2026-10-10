@@ -10,10 +10,6 @@
       "use": "@vercel/node"
     },
     {
-      "src": "api/inspect-video.js",
-      "use": "@vercel/node"
-    },
-    {
       "src": "index.html",
       "use": "@vercel/static"
     }
@@ -26,10 +22,6 @@
     {
       "src": "^/generate/?$",
       "dest": "/api/generate.js"
-    },
-    {
-      "src": "^/inspect-video/?$",
-      "dest": "/api/inspect-video.js"
     },
     {
       "handle": "filesystem"
