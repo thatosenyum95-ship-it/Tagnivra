@@ -44,3 +44,28 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  verify:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Verify published website
+        run: |
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 5 \
+            https://thatosenyum95-ship-it.github.io/Tagnivra/ -o /tmp/tagnivra.html
+          grep -q "Tagnivra — AI Tag & Hashtag Generator" /tmp/tagnivra.html
+          grep -q "https://tagnivra.thatosenyum95.workers.dev" /tmp/tagnivra.html
+      - name: Verify AI backend response
+        run: |
+          curl --fail --silent --show-error --location --retry 3 --retry-delay 3 \
+            -X POST "https://tagnivra.thatosenyum95.workers.dev" \
+            -H "Content-Type: text/plain;charset=UTF-8" \
+            --data '{"topic":"resep nasi goreng sederhana","platform":"YouTube","language":"id","style":"Tutorial"}' \
+            -o /tmp/tagnivra-response.json
+          node -e '
+            const fs = require("fs");
+            const data = JSON.parse(fs.readFileSync("/tmp/tagnivra-response.json", "utf8"));
+            if (!Array.isArray(data.hashtags) || data.hashtags.length === 0) throw new Error("AI response has no hashtags");
+            if (!Array.isArray(data.keywords) || data.keywords.length === 0) throw new Error("AI response has no keywords");
+            console.log("AI backend OK: " + data.hashtags.length + " hashtags, " + data.keywords.length + " keywords.");
+          '
