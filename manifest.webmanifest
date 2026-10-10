@@ -1,7 +1,7 @@
 {
   "name": "Tagnivra",
   "short_name": "Tagnivra",
-  "description": "AI tag, keyword, dan hashtag studio",
+  "description": "Generator tag, keyword, dan hashtag",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#080b25",
