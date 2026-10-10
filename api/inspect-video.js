@@ -1,7 +1,8 @@
 const ALLOWED_HOSTS = [
   "youtube.com", "m.youtube.com", "youtu.be", "youtube-nocookie.com",
   "tiktok.com", "instagram.com", "facebook.com", "fb.watch",
-  "x.com", "twitter.com", "threads.net", "pinterest.com", "pin.it"
+  "x.com", "twitter.com", "threads.net", "pinterest.com", "pin.it",
+  "linkedin.com", "reddit.com", "tumblr.com", "snapchat.com"
 ];
 function hostAllowed(host) {
   const h = String(host || "").toLowerCase().replace(/^www\./, "");
