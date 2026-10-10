@@ -62,7 +62,7 @@ document.getElementById('generate').addEventListener('click',async()=>{
  const raw=document.getElementById('topic').value.trim();if(!raw){document.getElementById('topic').focus();return}
  let backendProblem='';
  try {
-  const response=await fetch('https://tagnivra-pg4e5jlau-laraazahara68-8259.vercel.app/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:raw,platform:platform.toLowerCase(),language:document.getElementById('language').value,style:({Umum:'general',Tutorial:'tutorial',Hiburan:'entertainment',Edukasi:'education',Review:'review',Gaming:'gaming',Bisnis:'business'})[document.getElementById('style').value]||'general'})});
+  const response=await fetch('/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:raw,platform:platform.toLowerCase(),language:document.getElementById('language').value,style:({Umum:'general',Tutorial:'tutorial',Hiburan:'entertainment',Edukasi:'education',Review:'review',Gaming:'gaming',Bisnis:'business'})[document.getElementById('style').value]||'general'})});
   const payload=await response.json();
   const data=normalizeAiResponse(payload);
   if(response.ok&&data&&Array.isArray(data.hashtags)&&Array.isArray(data.keywords)){
