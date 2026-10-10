@@ -45,7 +45,7 @@ document.getElementById('generate').addEventListener('click',async()=>{
  document.getElementById('empty').textContent='AI sedang membuat rekomendasi khusus untuk topikmu…';
  const styleValue=document.getElementById('style').value,lang=document.getElementById('language').value;
  try{
-  const response=await fetch(AI_API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:raw,platform,language:lang,style:styleValue})});
+  const response=await fetch(AI_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({topic:raw,platform,language:lang,style:styleValue})});
   const data=await response.json();
   if(!response.ok)throw new Error(data.error||'AI belum bisa merespons.');
   lastHashtags=Array.isArray(data.hashtags)?data.hashtags:[];
