@@ -119,9 +119,9 @@ textarea{resize:vertical;min-height:90px}
 
 <section class="panel" id="descriptionPanel">
   <h2 class="feature-title">✍️ Pembuat deskripsi konten</h2>
-  <p class="hint">Ceritakan isi kontenmu agar deskripsi lebih sesuai. Generator bekerja lokal dan tidak menggunakan AI.</p>
+  <p class="hint">Deskripsi dibuat lebih panjang dari detail yang kamu masukkan. Semakin jelas isi kontennya, semakin relevan hasilnya. Generator berjalan lokal tanpa AI.</p>
   <div class="field"><label for="descriptionTopic">Judul/topik konten</label><input id="descriptionTopic" maxlength="180" placeholder="Contoh: Resep nasi goreng sederhana"></div>
-  <div class="field"><label for="contentSummary">Apa yang benar-benar dibahas atau ditampilkan?</label><textarea id="contentSummary" maxlength="1200" placeholder="Tuliskan isi video, langkah penting, produk yang dibahas, hasil, atau pesan utama..."></textarea></div>
+  <div class="field"><label for="contentSummary">Ceritakan isi konten secara spesifik (penting)</label><textarea id="contentSummary" maxlength="1800" placeholder="Contoh: bahan yang dipakai, langkah memasak, tips agar tidak lengket, cara penyajian, rasa/hasil akhir, dan siapa yang cocok mencoba resep ini. Tulis sesuai yang benar-benar ada di konten."></textarea><p class="mini-note">Isi 2–5 kalimat tentang apa yang benar-benar terlihat atau dibahas. Jangan masukkan klaim yang tidak ada di konten.</p></div>
   <div class="fields"><div class="field"><label for="descriptionTone">Gaya deskripsi</label><select id="descriptionTone"><option value="friendly">Ramah dan menarik</option><option value="professional">Profesional</option><option value="casual">Santai</option><option value="educational">Informatif</option><option value="promotional">Promosi</option></select></div><div class="field"><label for="descriptionCTA">Ajakan penutup</label><select id="descriptionCTA"><option value="comment">Ajak berkomentar</option><option value="follow">Ajak mengikuti akun</option><option value="share">Ajak membagikan</option><option value="none">Tanpa ajakan</option></select></div></div>
   <button class="primary" id="makeDescription">✦ Buat deskripsi</button>
   <div id="descriptionOutput" hidden><div class="resulthead"><h3>Deskripsi siap digunakan</h3><button class="copy" id="copyDescription">Salin deskripsi</button></div><div class="output-text" id="descriptionText"></div><div class="secondary-actions"><button class="copy" id="saveDescription">Simpan ke favorit</button><button class="copy" id="downloadDescription">Ekspor .txt</button></div><p class="mini-note">Periksa lagi agar setiap klaim sesuai dengan isi konten sebenarnya.</p></div>
@@ -255,7 +255,93 @@ document.getElementById('saveFavorite').addEventListener('click',()=>{const topi
 document.getElementById('exportResults').addEventListener('click',()=>downloadText('tagnivra-hasil.txt',currentResultsText()));
 document.getElementById('shareResults').addEventListener('click',async()=>{const text=currentResultsText();try{if(navigator.share)await navigator.share({title:'Hasil Tagnivra',text});else await copyText(text,'shareResults','Bagikan hasil')}catch(e){if(e.name!=='AbortError')copyText(text,'shareResults','Bagikan hasil')}});
 document.getElementById('clearFavorites').addEventListener('click',()=>{try{localStorage.removeItem(FAVORITES_KEY)}catch(e){}renderFavorites()});
-document.getElementById('makeDescription').addEventListener('click',()=>{const topic=(document.getElementById('descriptionTopic').value||document.getElementById('topic').value).trim(),summary=document.getElementById('contentSummary').value.trim(),lang=document.getElementById('language').value,tone=document.getElementById('descriptionTone').value,cta=document.getElementById('descriptionCTA').value;if(!topic&&!summary){document.getElementById('descriptionTopic').focus();return}const lead=lang==='en'?'In this content, we explore':'Di konten ini kita membahas';const friendly=lang==='en'?'Watch until the end and share your thoughts!':'Tonton sampai selesai dan bagikan pendapatmu!';const toneLead=tone==='professional'?(lang==='en'?'This content provides an overview of':'Konten ini menyajikan pembahasan mengenai'):tone==='educational'?(lang==='en'?'Learn about':'Pelajari'):tone==='promotional'?(lang==='en'?'Discover':'Kenali'):tone==='casual'?(lang==='en'?'Let’s talk about':'Yuk, bahas') :lead;let desc=(topic?topic+'\n\n':'')+toneLead+' '+(summary||topic)+'.';if(cta==='comment')desc+='\n\n'+(lang==='en'?'What do you think? Leave a comment below.':'Menurut kamu bagaimana? Tulis pendapatmu di kolom komentar.');if(cta==='follow')desc+='\n\n'+(lang==='en'?'Follow this account for more content.':'Ikuti akun ini untuk konten lainnya.');if(cta==='share')desc+='\n\n'+(lang==='en'?'Share this with someone who may find it useful.':'Bagikan ke orang yang mungkin membutuhkan informasi ini.');if(tone==='friendly'&&cta==='none')desc+='\n\n'+friendly;currentDescription=desc;document.getElementById('descriptionText').textContent=desc;document.getElementById('descriptionOutput').hidden=false;document.getElementById('descriptionOutput').scrollIntoView({behavior:'smooth',block:'nearest'});});
+document.getElementById('makeDescription').addEventListener('click',()=>{
+ const topic=(document.getElementById('descriptionTopic').value||document.getElementById('topic').value).trim();
+ const summary=document.getElementById('contentSummary').value.trim();
+ const lang=document.getElementById('language').value;
+ const tone=document.getElementById('descriptionTone').value;
+ const cta=document.getElementById('descriptionCTA').value;
+ const kind=(document.getElementById('style').value||'Umum').toLowerCase();
+ if(!topic&&!summary){document.getElementById('descriptionTopic').focus();return}
+ const en=lang==='en';
+ const mixed=lang==='mix';
+ const say=(id,english)=>en?english:id;
+ const cleanSummary=summary.replace(/\\s+/g,' ').replace(/\\s*([.!?])\\s*/g,'$1 ').trim();
+ const sentences=cleanSummary?cleanSummary.split(/(?<=[.!?])\\s+/).filter(Boolean):[];
+ const detail=cleanSummary||say(
+  'Konten ini berfokus pada topik “'+topic+'”. Tambahkan detail isi, proses, contoh, atau hasil yang benar-benar ditampilkan agar deskripsinya lebih spesifik dan tidak sekadar mengulang judul.',
+  'This content focuses on “'+topic+'”. Add the actual details, process, examples, or results shown so the description can be more specific than the title alone.'
+ );
+ const openings={
+  friendly:say('Penasaran dengan '+topic+'? Yuk, simak konten ini sampai selesai!','Curious about '+topic+'? Settle in and watch this content to the end!'),
+  professional:say('Konten ini membahas '+topic+' dengan fokus pada informasi yang disampaikan dalam materi.','This content discusses '+topic+' with a focus on the information covered in the material.'),
+  casual:say('Kali ini kita ngobrolin '+topic+'. Yuk, langsung bahas!','Today, we’re talking about '+topic+'. Let’s get into it!'),
+  educational:say('Mari pelajari '+topic+' melalui penjelasan dan poin-poin yang disampaikan dalam konten ini.','Explore '+topic+' through the explanations and key points presented in this content.'),
+  promotional:say('Sedang mencari informasi tentang '+topic+'? Simak penjelasan berikut untuk mengenal topik ini lebih jauh.','Looking for information about '+topic+'? Read on to learn more about this topic.')
+ };
+ const kindIntro={
+  'tutorial':say('Dalam panduan ini, perhatian diarahkan pada urutan langkah dan hal-hal yang perlu diperhatikan.','This guide focuses on the steps and details worth paying attention to.'),
+  'tips & trik':say('Kita menyoroti tips praktis yang berkaitan dengan topik ini agar lebih mudah dipahami dan dicoba sesuai kebutuhan.','We highlight practical tips related to this topic so they’re easier to understand and apply where appropriate.'),
+  'hiburan':say('Nikmati kontennya, tangkap bagian yang paling menarik, dan bagikan momen favoritmu.','Enjoy the content, catch the most entertaining moments, and share your favorite part.'),
+  'komedi':say('Siapkan diri untuk menikmati sisi lucu dari cerita atau situasi yang ditampilkan.','Get ready to enjoy the funny side of the story or situation featured here.'),
+  'edukasi':say('Pembahasan disusun untuk membantu penonton memahami topik secara lebih jelas.','The discussion is designed to help viewers understand the topic more clearly.'),
+  'review':say('Perhatikan detail yang dibahas dan gunakan informasi tersebut sebagai bahan pertimbangan sesuai kebutuhanmu.','Pay attention to the details discussed and use them as a reference for your own needs.'),
+  'unboxing':say('Konten ini berfokus pada pengalaman membuka dan melihat produk yang ditampilkan, sesuai detail yang dijelaskan.','This content focuses on opening and looking at the featured product, based on the details described.'),
+  'perbandingan produk':say('Perbandingan perlu dilihat dari aspek yang benar-benar dibahas agar kamu bisa menilai mana yang sesuai kebutuhan.','Compare the aspects actually covered so you can decide what best fits your needs.'),
+  'gaming':say('Simak jalannya permainan, momen penting, dan strategi yang memang ditampilkan di konten.','Follow the gameplay, key moments, and strategies actually shown in the content.'),
+  'vlog harian':say('Ikuti cerita dan momen keseharian yang dibagikan dalam vlog ini.','Follow the everyday moments and experiences shared in this vlog.'),
+  'storytime':say('Cerita disampaikan berdasarkan pengalaman atau kejadian yang dibagikan dalam konten.','The story is told through the experience or events shared in the content.'),
+  'challenge':say('Lihat proses tantangan ini dan bagaimana hasilnya ditampilkan dalam konten.','See how this challenge unfolds and how its outcome is presented.'),
+  'podcast':say('Simak gagasan, sudut pandang, dan percakapan yang menjadi inti pembahasan.','Tune in to the ideas, perspectives, and conversation at the heart of the discussion.'),
+  'musik':say('Nikmati bagian musik yang dibagikan dan perhatikan detail yang menjadi fokus konten.','Enjoy the music featured and notice the details highlighted in the content.'),
+  'kuliner':say('Pembahasan berfokus pada makanan atau pengalaman kuliner yang benar-benar ditampilkan.','The focus is on the food or culinary experience actually featured.'),
+  'kecantikan':say('Simak produk, teknik, atau rutinitas yang benar-benar diperlihatkan dan dijelaskan.','Explore the products, techniques, or routines actually shown and explained.'),
+  'fashion':say('Perhatikan inspirasi gaya dan detail penampilan yang ditampilkan dalam konten.','Take a look at the style inspiration and outfit details featured in the content.'),
+  'travel & wisata':say('Kenali tempat atau pengalaman perjalanan yang dibagikan, berdasarkan informasi dalam konten.','Explore the destination or travel experience shared, based on the information in the content.'),
+  'olahraga & fitness':say('Fokus pada gerakan, rutinitas, atau informasi latihan yang memang dijelaskan dalam konten.','Focus on the movements, routines, or workout information actually explained.'),
+  'motivasi':say('Semoga pesan yang dibagikan bisa menjadi bahan refleksi dan penyemangat untuk melangkah.','May the message shared offer a moment of reflection and encouragement to keep moving forward.'),
+  'berita & opini':say('Simak informasi dan sudut pandang yang dipaparkan, lalu bentuk penilaian berdasarkan konteks yang tersedia.','Review the information and perspectives presented, then form your own view based on the available context.'),
+  'bisnis':say('Pembahasan mengangkat hal-hal terkait bisnis sesuai contoh dan informasi yang disampaikan.','The discussion covers business-related points based on the examples and information provided.'),
+  'promosi produk':say('Kenali produk atau layanan melalui fitur dan manfaat yang benar-benar disebutkan dalam konten.','Learn about the product or service through the features and benefits actually mentioned.'),
+  'teknologi':say('Simak penjelasan atau pengalaman terkait teknologi yang menjadi fokus konten ini.','Explore the technology explanation or experience featured in this content.'),
+  'diy & kreatif':say('Ikuti proses kreatif dan bahan atau langkah yang memang ditampilkan dalam konten.','Follow the creative process and the materials or steps actually shown.'),
+  'produktivitas':say('Perhatikan pendekatan dan kebiasaan yang dibahas, lalu sesuaikan dengan kebutuhanmu sendiri.','Consider the approaches and habits discussed, then adapt them to your own needs.'),
+  'otomotif':say('Konten ini menyoroti kendaraan atau topik otomotif sesuai detail yang disampaikan.','This content highlights the vehicle or automotive topic based on the details provided.'),
+  'konten religi':say('Luangkan waktu untuk menyimak pesan dan renungan yang benar-benar disampaikan dalam konten.','Take a moment to reflect on the message and thoughts actually shared in the content.'),
+  'konten keluarga':say('Konten ini berbagi momen atau pembahasan keluarga sebagaimana ditampilkan.','This content shares family moments or topics as they are presented.'),
+  'asmr':say('Nikmati suara dan suasana yang menjadi fokus utama konten ini.','Enjoy the sounds and atmosphere at the center of this content.'),
+  'live streaming':say('Ikuti momen dan pembahasan yang dibagikan selama sesi siaran ini.','Follow the moments and discussion shared during this stream.'),
+  'shorts / reels':say('Konten singkat ini merangkum topik utama dalam format yang ringkas dan mudah diikuti.','This short-form content presents its main topic in a concise, easy-to-follow format.')
+ };
+ const platformNote={
+  'YouTube':say('Deskripsi ini bisa membantu penonton memahami konteks video sebelum menonton.','This description can help viewers understand the video before watching.'),
+  'TikTok':say('Temukan inti konten dalam beberapa paragraf singkat dan lanjutkan percakapan di komentar.','Get the gist in a few short paragraphs and continue the conversation in the comments.'),
+  'Instagram':say('Simpan atau bagikan postingan ini jika informasinya relevan dengan kebutuhanmu.','Save or share this post if the information is relevant to you.'),
+  'Facebook':say('Bagikan pendapat atau pengalaman yang relevan agar diskusi tetap bermanfaat.','Share a relevant opinion or experience to keep the discussion useful.'),
+  'LinkedIn':say('Gunakan poin yang relevan sebagai bahan diskusi dan pertukaran wawasan profesional.','Use relevant points as a starting point for professional discussion and knowledge sharing.'),
+  'Pinterest':say('Simpan ide ini sebagai referensi jika sesuai dengan proyek atau rencana yang sedang kamu kerjakan.','Save this idea for reference if it fits a project or plan you’re working on.'),
+  'X':say('Sampaikan sudut pandangmu secara ringkas dan tetap berkaitan dengan topik.','Share your perspective concisely and keep it relevant to the topic.'),
+  'Threads':say('Ceritakan pendapatmu dan lanjutkan obrolan dengan tetap menghargai sudut pandang lain.','Share your thoughts and continue the conversation while respecting other perspectives.'),
+  'Reddit':say('Tambahkan pengalaman atau pertanyaan yang relevan untuk memperkaya diskusi.','Add a relevant experience or question to enrich the discussion.'),
+  'Tumblr':say('Gunakan deskripsi ini sebagai pengantar untuk konten atau cerita yang kamu bagikan.','Use this description as an introduction to the content or story you’re sharing.'),
+  'Snapchat':say('Sampaikan inti konten secara ringan dan ajak teman melihat atau membahasnya.','Keep the description light and invite friends to view or discuss it.')
+ };
+ const paragraphs=[openings[tone]||openings.friendly,detail,kindIntro[kind]||say('Konten ini mengajak penonton memahami topik utama melalui hal-hal yang benar-benar dibahas atau ditampilkan.','This content helps viewers explore the main topic through the details actually discussed or shown.'),platformNote[platform]||say('Semoga pembahasan ini bermanfaat dan memberi gambaran yang lebih jelas tentang topik tersebut.','Hopefully, this discussion is useful and offers a clearer picture of the topic.')];
+ if(summary&&sentences.length>1) paragraphs.splice(2,0,say('Poin-poin yang dibahas mencakup: ','The points covered include: ')+sentences.slice(0,5).join(' '));
+ const calls={
+  comment:say('Bagian mana yang paling menarik menurutmu? Tulis pendapat atau pertanyaanmu di kolom komentar.','Which part stood out to you? Share your thoughts or questions in the comments.'),
+  follow:say('Ikuti akun ini untuk melihat konten lain yang masih berkaitan.','Follow this account for more related content.'),
+  share:say('Bagikan konten ini kepada teman yang mungkin merasa topik ini berguna.','Share this content with someone who may find the topic useful.'),
+  none:''
+ };
+ if(calls[cta]) paragraphs.push(calls[cta]);
+ let desc=(topic?topic+'\\n\\n':'')+paragraphs.filter(Boolean).join('\\n\\n');
+ if(mixed) desc=desc+'\\n\\n'+(summary?'Topik dan detail utama di atas mengikuti isi yang kamu masukkan.':'Tambahkan ringkasan isi agar deskripsi berikutnya lebih spesifik.');
+ currentDescription=desc;
+ document.getElementById('descriptionText').textContent=desc;
+ document.getElementById('descriptionOutput').hidden=false;
+ document.getElementById('descriptionOutput').scrollIntoView({behavior:'smooth',block:'nearest'});
+});
 document.getElementById('copyDescription').addEventListener('click',()=>copyText(currentDescription,'copyDescription','Salin deskripsi'));
 document.getElementById('saveDescription').addEventListener('click',()=>{const topic=document.getElementById('descriptionTopic').value.trim()||document.getElementById('topic').value.trim();saveFavoriteItem({key:'description:'+topic+':'+currentDescription.slice(0,30),label:'Deskripsi · '+topic,topic,summary:document.getElementById('contentSummary').value,description:currentDescription,at:Date.now()});document.getElementById('saveDescription').textContent='✓ Tersimpan';setTimeout(()=>document.getElementById('saveDescription').textContent='Simpan ke favorit',1400)});
 document.getElementById('downloadDescription').addEventListener('click',()=>downloadText('tagnivra-deskripsi.txt',currentDescription));
