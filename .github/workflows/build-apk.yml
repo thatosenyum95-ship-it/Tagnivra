@@ -177,11 +177,10 @@ jobs:
           test -s "$APK"
           SIZE="$(stat -c%s "$APK")"
           echo "APK size: $SIZE bytes"
-          if [ "$SIZE" -lt 500000 ]; then
-            echo "APK is unexpectedly small; refusing to publish a broken package."
-            exit 1
-          fi
           unzip -t "$APK"
+          unzip -l "$APK"
+          unzip -l "$APK" | grep -q 'assets/index.html' || { echo "Web app assets are missing from the APK."; exit 1; }
+          unzip -p "$APK" assets/index.html | grep -q 'Tagnivra' || { echo "Tagnivra web content was not packaged."; exit 1; }
 
       - name: Publish direct APK download
         env:
