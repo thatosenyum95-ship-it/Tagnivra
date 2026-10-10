@@ -43,7 +43,7 @@ document.getElementById('generate').addEventListener('click',async()=>{
    lastHashtags=data.hashtags;lastKeywords=data.keywords;
    document.getElementById('hashtags').innerHTML=lastHashtags.map(x=>'<span class="tag">'+esc(x)+'</span>').join('');
    document.getElementById('keywords').innerHTML=lastKeywords.map(x=>'<span class="tag">'+esc(x)+'</span>').join('');
-   lastText='Platform: '+platform+'\\nTopik: '+raw+'\\n\\nHashtag:\\n'+lastHashtags.join(' ')+'\\n\\nKeyword & tag:\\n'+lastKeywords.join('\\n');
+   lastText='Platform: '+platform+'\nTopik: '+raw+'\n\nHashtag:\n'+lastHashtags.join(' ')+'\n\nKeyword & tag:\n'+lastKeywords.join('\n');
    document.getElementById('empty').hidden=true;document.getElementById('results').hidden=false;['copy','copyHash','copyKeys'].forEach(id=>document.getElementById(id).disabled=false);
    saveHistory({topic:raw,platform,style:document.getElementById('style').value,language:document.getElementById('language').value,at:Date.now()});
    document.getElementById('disclaimer').textContent=(data.note||'Saran AI berdasarkan konteks topik, bukan data tren real-time.')+' · Mesin: Tagnivra Engine AI';
