@@ -22,26 +22,39 @@ main{width:min(760px,100%);margin:auto;padding:24px 18px 50px}.brand{display:fle
 <div class="fields"><div class="field"><label for="language">Bahasa</label><select id="language"><option value="id">Indonesia</option><option value="en">English</option><option value="mix">Campuran</option></select></div><div class="field"><label for="style">Jenis konten</label><select id="style"><option>Umum</option><option>Tutorial</option><option>Hiburan</option><option>Edukasi</option><option>Review</option><option>Gaming</option><option>Bisnis</option></select></div></div>
 <button class="primary" id="generate">✦ Buat tag & hashtag</button><p class="hint">Versi awal: saran dibuat berdasarkan topik, bukan klaim data tren real-time.</p>
 </section>
-<section class="panel" aria-live="polite"><div class="resulthead"><strong>Hasil rekomendasi</strong><button class="copy" id="copy" disabled>Salin semua</button></div><p class="empty" id="empty">Masukkan topik, lalu tekan tombol buat untuk melihat rekomendasi.</p><div id="results" hidden><h3>Hashtag</h3><div class="tags" id="hashtags"></div><h3>Keyword & tag</h3><div class="tags" id="keywords"></div><p class="hint" id="disclaimer"></p></div></section>
-<p class="foot">Tagnivra • Saran AI bukan jaminan viral. Periksa relevansi sebelum dipakai.</p>
+<section class="panel" aria-live="polite"><div class="resulthead"><strong>Hasil rekomendasi</strong><button class="copy" id="copy" disabled>Salin semua</button></div><p class="empty" id="empty">Masukkan topik, lalu tekan tombol buat untuk melihat rekomendasi.</p><div id="results" hidden><div class="resulthead"><h3>Hashtag</h3><button class="copy" id="copyHash" disabled>Salin hashtag</button></div><div class="tags" id="hashtags"></div><div class="resulthead"><h3>Keyword & tag</h3><button class="copy" id="copyKeys" disabled>Salin keyword</button></div><div class="tags" id="keywords"></div><p class="hint" id="disclaimer"></p></div></section>
+<section class="panel"><div class="resulthead"><strong>Riwayat terbaru</strong><button class="copy" id="clearHistory">Hapus riwayat</button></div><p class="hint">Disimpan hanya di browser perangkat ini.</p><div id="historyList" class="tags"><span class="empty">Belum ada riwayat.</span></div></section><p class="foot">Tagnivra • Saran otomatis bukan jaminan viral. Periksa relevansi sebelum dipakai.</p>
 </main>
 <script>
-let platform='YouTube',lastText='';
+let platform='YouTube',lastText='',lastHashtags=[],lastKeywords=[];
+const HISTORY_KEY='tagnivra-history-v1';
+function getHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]')}catch(e){return []}}
+function renderHistory(){const el=document.getElementById('historyList'),items=getHistory();el.innerHTML=items.length?items.map((x,i)=>'<button class="tag" style="cursor:pointer" data-history="'+i+'">'+esc(x.topic)+' · '+esc(x.platform)+'</button>').join(''):'<span class="empty">Belum ada riwayat.</span>';el.querySelectorAll('[data-history]').forEach(b=>b.addEventListener('click',()=>{const item=getHistory()[Number(b.dataset.history)];if(item){document.getElementById('topic').value=item.topic;document.querySelectorAll('.platform').forEach(x=>x.classList.toggle('active',x.dataset.platform===item.platform));platform=item.platform;document.getElementById('style').value=item.style;document.getElementById('language').value=item.language;document.getElementById('generate').click()}}))}
+function saveHistory(item){const items=getHistory().filter(x=>!(x.topic===item.topic&&x.platform===item.platform));items.unshift(item);try{localStorage.setItem(HISTORY_KEY,JSON.stringify(items.slice(0,8)))}catch(e){}renderHistory()}
+renderHistory();
 document.querySelectorAll('.platform').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.platform').forEach(x=>x.classList.toggle('active',x===b));platform=b.dataset.platform}));
 const clean=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ').trim().split(/\s+/).filter(Boolean);
 document.getElementById('generate').addEventListener('click',()=>{
  const raw=document.getElementById('topic').value.trim();if(!raw){document.getElementById('topic').focus();return}
- const words=clean(raw),base=words.join(' '),style=document.getElementById('style').value.toLowerCase(),lang=document.getElementById('language').value;
- const extras=platform==='YouTube'?['tips','tutorial','indonesia','pemula','shorts']:platform==='TikTok'?['fyp','viral','tips','indonesia','trend']:['reels','tips','komunitas','indonesia','video'];
+ const words=clean(raw),base=words.join(' '),styleValue=document.getElementById('style').value,style=styleValue.toLowerCase(),lang=document.getElementById('language').value;
+ const idExtras=platform==='YouTube'?['tips','tutorial','indonesia','pemula','shorts']:platform==='TikTok'?['fyp','viral','tips','indonesia','trend']:['reels','tips','komunitas','indonesia','video'];
+ const enExtras=platform==='YouTube'?['howto','tutorial','beginner','shorts','guide']:platform==='TikTok'?['fyp','viral','tips','learnontiktok','trend']:['reels','tips','community','video','howto'];
+ const extras=lang==='en'?enExtras:lang==='mix'?[...idExtras.slice(0,3),...enExtras.slice(0,2)]:idExtras;
  const tags=[base,...extras.slice(0,4).map(x=>base+' '+x),style+' '+base].map(x=>'#'+clean(x).join('')).filter(x=>x.length>1);
  const keywords=[raw,...words, ...extras.map(x=>base+' '+x),style+' '+base].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,12);
  const hashtags=[...new Set(tags)].slice(0,8);
+ lastHashtags=hashtags;lastKeywords=keywords;
  document.getElementById('hashtags').innerHTML=hashtags.map(x=>'<span class="tag">'+esc(x)+'</span>').join('');
  document.getElementById('keywords').innerHTML=keywords.map(x=>'<span class="tag">'+esc(x)+'</span>').join('');
  lastText='Platform: '+platform+'\nTopik: '+raw+'\n\nHashtag:\n'+hashtags.join(' ')+'\n\nKeyword & tag:\n'+keywords.join('\n');
- document.getElementById('empty').hidden=true;document.getElementById('results').hidden=false;document.getElementById('copy').disabled=false;
+ document.getElementById('empty').hidden=true;document.getElementById('results').hidden=false;['copy','copyHash','copyKeys'].forEach(id=>document.getElementById(id).disabled=false);
+ saveHistory({topic:raw,platform,style:styleValue,language:lang,at:Date.now()});
  document.getElementById('disclaimer').textContent='Saran otomatis berbasis kata dari topik. Belum terhubung ke data tren aktual.';
 });
 function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-document.getElementById('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(lastText);document.getElementById('copy').textContent='Tersalin ✓'}catch(e){const t=document.createElement('textarea');t.value=lastText;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();document.getElementById('copy').textContent='Tersalin ✓'}setTimeout(()=>document.getElementById('copy').textContent='Salin semua',1600)});
+async function copyText(text,buttonId,defaultLabel){const button=document.getElementById(buttonId);try{await navigator.clipboard.writeText(text)}catch(e){const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove()}button.textContent='Tersalin ✓';setTimeout(()=>button.textContent=defaultLabel,1600)}
+document.getElementById('copy').addEventListener('click',()=>copyText(lastText,'copy','Salin semua'));
+document.getElementById('copyHash').addEventListener('click',()=>copyText(lastHashtags.join(' '),'copyHash','Salin hashtag'));
+document.getElementById('copyKeys').addEventListener('click',()=>copyText(lastKeywords.join('\n'),'copyKeys','Salin keyword'));
+document.getElementById('clearHistory').addEventListener('click',()=>{try{localStorage.removeItem(HISTORY_KEY)}catch(e){}renderHistory()});
 </script></body></html>
