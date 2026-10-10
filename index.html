@@ -34,7 +34,7 @@ function saveHistory(item){const items=getHistory().filter(x=>!(x.topic===item.t
 renderHistory();
 document.querySelectorAll('.platform').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.platform').forEach(x=>x.classList.toggle('active',x===b));platform=b.dataset.platform}));
 const clean=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ').trim().split(/\s+/).filter(Boolean);
-const AI_API_URL = 'https://tagnivra-ai.thatosenyum95.workers.dev';
+const AI_API_URL = 'https://tagnivra.thatosenyum95.workers.dev';
 document.getElementById('generate').addEventListener('click',async()=>{
  const raw=document.getElementById('topic').value.trim();
  if(!raw){document.getElementById('topic').focus();return}
