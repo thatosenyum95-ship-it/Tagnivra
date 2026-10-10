@@ -37,11 +37,35 @@ const clean=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').r
 document.getElementById('generate').addEventListener('click',()=>{
  const raw=document.getElementById('topic').value.trim();if(!raw){document.getElementById('topic').focus();return}
  const words=clean(raw),base=words.join(' '),styleValue=document.getElementById('style').value,style=styleValue.toLowerCase(),lang=document.getElementById('language').value;
- const idExtras=platform==='YouTube'?['tips','tutorial','indonesia','pemula','shorts']:platform==='TikTok'?['fyp','viral','tips','indonesia','trend']:['reels','tips','komunitas','indonesia','video'];
- const enExtras=platform==='YouTube'?['howto','tutorial','beginner','shorts','guide']:platform==='TikTok'?['fyp','viral','tips','learnontiktok','trend']:['reels','tips','community','video','howto'];
+ const idExtras=platform==='YouTube'?['tutorial','cara membuat','tips pemula','panduan lengkap','shorts']:platform==='TikTok'?['tips singkat','tutorial','fyp','ide konten','video pendek']:['tips','panduan','video menarik','komunitas','reels'];
+ const enExtras=platform==='YouTube'?['how to','beginner guide','step by step','full guide','shorts']:platform==='TikTok'?['quick tips','tutorial','fyp','content ideas','short video']:['tips','guide','community','video ideas','reels'];
  const extras=lang==='en'?enExtras:lang==='mix'?[...idExtras.slice(0,3),...enExtras.slice(0,2)]:idExtras;
- const tags=[base,...extras.slice(0,4).map(x=>base+' '+x),style+' '+base].map(x=>'#'+clean(x).join('')).filter(x=>x.length>1);
- const keywords=[raw,...words, ...extras.map(x=>base+' '+x),style+' '+base].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,12);
+ const topicText=base;
+ const topicRules=[
+  {keys:['masak','resep','makanan','goreng','kue','food','cooking','recipe'],id:['resep mudah','ide menu harian','masakan rumahan','tips memasak'],en:['easy recipe','meal ideas','home cooking','cooking tips']},
+  {keys:['game','gaming','minecraft','mobile legend','mlbb','roblox','free fire','pubg'],id:['gameplay','tips gaming','mabar','strategi game'],en:['gameplay','gaming tips','play together','game strategy']},
+  {keys:['makeup','skincare','cantik','beauty','rambut','fashion','outfit'],id:['tips kecantikan','tutorial pemula','perawatan harian','inspirasi gaya'],en:['beauty tips','beginner tutorial','daily routine','style inspiration']},
+  {keys:['belajar','sekolah','edukasi','matematika','bahasa','study','learn','education'],id:['belajar mudah','materi pemula','tips belajar','penjelasan singkat'],en:['easy learning','beginner lesson','study tips','simple explanation']},
+  {keys:['bisnis','jualan','usaha','marketing','uang','business','marketing'],id:['ide usaha','strategi pemasaran','tips jualan','pengembangan bisnis'],en:['business ideas','marketing strategy','selling tips','business growth']},
+  {keys:['olahraga','fitness','gym','lari','workout','diet'],id:['tips olahraga','latihan pemula','rutinitas sehat','motivasi latihan'],en:['fitness tips','beginner workout','healthy routine','workout motivation']},
+  {keys:['wisata','travel','liburan','pantai','hotel','jalan jalan'],id:['rekomendasi tempat','tips liburan','destinasi menarik','panduan perjalanan'],en:['places to visit','travel tips','destinations','travel guide']},
+  {keys:['musik','lagu','nyanyi','gitar','music','song','singing'],id:['musik indonesia','cover lagu','belajar musik','rekomendasi lagu'],en:['music','song cover','learn music','song recommendations']}
+ ];
+ const match=topicRules.find(rule=>rule.keys.some(k=>topicText.includes(k)));
+ const contextual=match?(lang==='en'?match.en:lang==='mix'?[...match.id.slice(0,2),...match.en.slice(0,2)]:match.id):[];
+ const styleIdeas={
+  'tutorial':lang==='en'?['step by step','how to guide']:['langkah demi langkah','panduan cara'],
+  'hiburan':lang==='en'?['funny moments','entertainment']:['momen lucu','hiburan seru'],
+  'edukasi':lang==='en'?['explained simply','learn something new']:['penjelasan mudah','belajar hal baru'],
+  'review':lang==='en'?['honest review','pros and cons']:['ulasan jujur','kelebihan dan kekurangan'],
+  'gaming':lang==='en'?['gameplay highlights','gaming tips']:['cuplikan gameplay','tips gaming'],
+  'bisnis':lang==='en'?['business tips','growth strategy']:['tips bisnis','strategi berkembang'],
+  'umum':lang==='en'?['ideas and tips','beginner friendly']:['ide dan tips','cocok untuk pemula']
+ };
+ const styleIdeasList=styleIdeas[style]||styleIdeas['umum'];
+ const suggestions=[...contextual,...styleIdeasList,...extras];
+ const tags=[base,...contextual.slice(0,3).map(x=>base+' '+x),...extras.slice(0,2).map(x=>base+' '+x),...styleIdeasList.slice(0,1).map(x=>base+' '+x)].map(x=>'#'+clean(x).join('')).filter(x=>x.length>1);
+ const keywords=[raw,...contextual.map(x=>base+' '+x),...styleIdeasList.map(x=>base+' '+x),...suggestions.map(x=>base+' '+x)].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,12);
  const hashtags=[...new Set(tags)].slice(0,8);
  lastHashtags=hashtags;lastKeywords=keywords;
  document.getElementById('hashtags').innerHTML=hashtags.map(x=>'<span class="tag">'+esc(x)+'</span>').join('');
