@@ -16,7 +16,18 @@ This service runs an open-weight model through Ollama. It does not call the Open
 4. Build/start the API: `docker compose up -d --build api`
 5. Check logs: `docker compose logs -f api`
 
-The API listens on `127.0.0.1:8000` on the host. This is intentionally private. For production, place a TLS-enabled reverse proxy or authenticated tunnel in front of it. Set a strong token and configure the frontend/Worker to send it securely; never put a permanent secret in browser JavaScript.
+The API listens on `127.0.0.1:8000` on the host. This is intentionally private. For production, place a TLS-enabled reverse proxy or authenticated tunnel in front of it. Set a strong token.
+
+## Connect the existing Tagnivra Worker
+
+After the server is reachable over HTTPS:
+
+1. Set the Worker variable `SELF_HOSTED_AI_URL` to the API base URL (no trailing slash, for example `https://your-api-domain.example`).
+2. Add `SELF_HOSTED_AI_TOKEN` as a Worker **secret**, with the same value as `TAGNIVRA_API_TOKEN` in the server's `.env`.
+3. Redeploy the Worker. The existing web app can continue calling the Worker endpoint; the Worker proxies requests to the self-hosted model and keeps the token out of browser code.
+4. Check `GET /health` on the server and the Worker's `GET /health` endpoint.
+
+Do not put the permanent API token in browser JavaScript or expose Ollama's port 11434 publicly. The Worker proxy code is in the repository, but the Worker has not been deployed from this change yet.
 
 ## Endpoints
 
