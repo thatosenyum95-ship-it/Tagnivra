@@ -16,17 +16,42 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const url = new URL(request.url);
     if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/health")) {
-      return json({ ok: true, service: "Tagnivra Engine", aiConfigured: Boolean(env.AI), version: "1.0.0" });
+      return json({ ok: true, service: "Tagnivra Engine", selfHostedConfigured: Boolean(env.SELF_HOSTED_AI_URL), fallbackConfigured: Boolean(env.AI), version: "1.1.0" });
     }
     if (request.method !== "POST" || !["/generate", "/"].includes(url.pathname)) {
       return json({ error: "Gunakan POST /generate untuk membuat tag." }, 405);
     }
-    if (!env.AI || typeof env.AI.run !== "function") {
-      return json({ error: "Workers AI belum terhubung. Periksa binding AI pada Worker Tagnivra." }, 503);
-    }
     let input;
     try { input = await request.json(); }
     catch { return json({ error: "Body harus berupa JSON yang valid." }, 400); }
+
+    // Prefer the Tagnivra-owned model server when configured. The token is a
+    // Worker secret and is never sent to the browser.
+    if (env.SELF_HOSTED_AI_URL) {
+      try {
+        const base = String(env.SELF_HOSTED_AI_URL).replace(/\\/+$/, "");
+        const upstream = await fetch(base + "/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(env.SELF_HOSTED_AI_TOKEN ? { "Authorization": "Bearer " + env.SELF_HOSTED_AI_TOKEN } : {})
+          },
+          body: JSON.stringify(input),
+          signal: AbortSignal.timeout(150000)
+        });
+        const text = await upstream.text();
+        return new Response(text, {
+          status: upstream.status,
+          headers: { ...cors, "Content-Type": upstream.headers.get("Content-Type") || "application/json; charset=utf-8", "Cache-Control": "no-store" }
+        });
+      } catch (error) {
+        return json({ error: "Server AI Tagnivra belum bisa dihubungi. Periksa alamat server dan koneksinya." , detail: String(error?.message || error).slice(0, 160) }, 502);
+      }
+    }
+
+    if (!env.AI || typeof env.AI.run !== "function") {
+      return json({ error: "AI belum dikonfigurasi. Atur SELF_HOSTED_AI_URL untuk server AI milik Tagnivra." }, 503);
+    }
     const topic = String(input.topic || "").trim().slice(0, 180);
     const platform = ["YouTube", "TikTok", "Facebook"].includes(input.platform) ? input.platform : "YouTube";
     const language = ["id", "en", "mix"].includes(input.language) ? input.language : "id";
