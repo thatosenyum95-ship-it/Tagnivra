@@ -1,6 +1,23 @@
 {
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    }
+  ],
   "rewrites": [
-    { "source": "/generate", "destination": "/api/generate" },
-    { "source": "/health", "destination": "/api/health" }
+    {
+      "source": "/generate",
+      "destination": "/api/generate"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/health"
+    }
   ]
 }
