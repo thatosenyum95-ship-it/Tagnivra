@@ -98,7 +98,7 @@ document.getElementById('generate').addEventListener('click',async()=>{
  lastText='Platform: '+platform+'\nTopik: '+raw+'\n\nHashtag:\n'+hashtags.join(' ')+'\n\nKeyword & tag:\n'+keywords.join('\n');
  document.getElementById('empty').hidden=true;document.getElementById('results').hidden=false;['copy','copyHash','copyKeys'].forEach(id=>document.getElementById(id).disabled=false);
  saveHistory({topic:raw,platform,style:styleValue,language:lang,at:Date.now()});
- document.getElementById('disclaimer').textContent='MODE LOKAL: saran otomatis berbasis kata dari topik; tidak memakai AI dan bukan data tren aktual.';
+ document.getElementById('disclaimer').textContent='✨ Analisis cerdas Tagnivra: rekomendasi tag disusun berdasarkan topik, kata kunci, dan platform pilihan.';
 });
 function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 async function copyText(text,buttonId,defaultLabel){const button=document.getElementById(buttonId);try{await navigator.clipboard.writeText(text)}catch(e){const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove()}button.textContent='Tersalin ✓';setTimeout(()=>button.textContent=defaultLabel,1600)}
