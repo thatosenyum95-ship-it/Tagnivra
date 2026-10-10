@@ -65,7 +65,7 @@ input:focus,textarea:focus,select:focus{box-shadow:0 0 0 3px #25e4f21c}
 <section class="panel">
 <div class="field"><label>Pilih platform</label><div class="platforms" role="group" aria-label="Platform"><button class="platform active" data-platform="YouTube">▶ YouTube</button><button class="platform" data-platform="TikTok">♪ TikTok</button><button class="platform" data-platform="Facebook">f Facebook</button></div></div>
 <div class="field"><label for="topic">Topik atau judul konten</label><input id="topic" maxlength="180" placeholder="Contoh: resep nasi goreng sederhana"></div>
-<div class="fields"><div class="field"><label for="language">Bahasa</label><select id="language"><option value="id">Indonesia</option><option value="en">English</option><option value="mix">Campuran</option></select></div><div class="field"><label for="style">Jenis konten</label><select id="style"><option>Umum</option><option>Tutorial</option><option>Hiburan</option><option>Edukasi</option><option>Review</option><option>Gaming</option><option>Bisnis</option></select></div></div>
+<div class="fields"><div class="field"><label for="language">Bahasa</label><select id="language"><option value="id">Indonesia</option><option value="en">English</option><option value="mix">Campuran</option></select></div><div class="field"><label for="style">Jenis konten</label><select id="style"><option>Umum</option><option>Tutorial</option><option>Tips &amp; Trik</option><option>Hiburan</option><option>Komedi</option><option>Edukasi</option><option>Review</option><option>Unboxing</option><option>Perbandingan Produk</option><option>Gaming</option><option>Vlog Harian</option><option>Storytime</option><option>Challenge</option><option>Podcast</option><option>Musik</option><option>Kuliner</option><option>Kecantikan</option><option>Fashion</option><option>Travel &amp; Wisata</option><option>Olahraga &amp; Fitness</option><option>Motivasi</option><option>Berita &amp; Opini</option><option>Bisnis</option><option>Promosi Produk</option><option>Teknologi</option><option>DIY &amp; Kreatif</option><option>Produktivitas</option><option>Otomotif</option><option>Konten Religi</option><option>Konten Keluarga</option><option>ASMR</option><option>Live Streaming</option><option>Shorts / Reels</option></select></div></div>
 <button class="primary" id="generate">✦ Buat tag & hashtag</button><p class="hint">Versi awal: saran dibuat berdasarkan topik, bukan klaim data tren real-time.</p>
 </section>
 <section class="panel" aria-live="polite"><div class="resulthead"><strong>Hasil rekomendasi</strong><button class="copy" id="copy" disabled>Salin semua</button></div><p class="empty" id="empty">Masukkan topik, lalu tekan tombol buat untuk melihat rekomendasi.</p><div id="results" hidden><div class="resulthead"><h3>Hashtag</h3><button class="copy" id="copyHash" disabled>Salin hashtag</button></div><div class="tags" id="hashtags"></div><div class="resulthead"><h3>Keyword & tag</h3><button class="copy" id="copyKeys" disabled>Salin keyword</button></div><div class="tags" id="keywords"></div><p class="hint" id="disclaimer"></p></div></section>
@@ -126,11 +126,37 @@ document.getElementById('generate').addEventListener('click',async()=>{
  const contextual=match?(lang==='en'?match.en:lang==='mix'?[...match.id.slice(0,2),...match.en.slice(0,2)]:match.id):[];
  const styleIdeas={
   'tutorial':lang==='en'?['step by step','how to guide']:['langkah demi langkah','panduan cara'],
+  'tips & trik':lang==='en'?['practical tips','useful tricks']:['tips praktis','trik bermanfaat'],
   'hiburan':lang==='en'?['funny moments','entertainment']:['momen lucu','hiburan seru'],
+  'komedi':lang==='en'?['comedy skit','funny video']:['sketsa komedi','video lucu'],
   'edukasi':lang==='en'?['explained simply','learn something new']:['penjelasan mudah','belajar hal baru'],
   'review':lang==='en'?['honest review','pros and cons']:['ulasan jujur','kelebihan dan kekurangan'],
+  'unboxing':lang==='en'?['unboxing video','first impressions']:['video unboxing','kesan pertama'],
+  'perbandingan produk':lang==='en'?['product comparison','which is better']:['perbandingan produk','mana yang lebih bagus'],
   'gaming':lang==='en'?['gameplay highlights','gaming tips']:['cuplikan gameplay','tips gaming'],
+  'vlog harian':lang==='en'?['daily vlog','day in my life']:['vlog sehari-hari','sehari dalam hidup'],
+  'storytime':lang==='en'?['storytime video','personal experience']:['cerita pengalaman','kisah menarik'],
+  'challenge':lang==='en'?['fun challenge','challenge video']:['tantangan seru','video challenge'],
+  'podcast':lang==='en'?['podcast clips','deep conversation']:['cuplikan podcast','obrolan mendalam'],
+  'musik':lang==='en'?['music video','song cover']:['video musik','cover lagu'],
+  'kuliner':lang==='en'?['food review','food recommendations']:['ulasan makanan','rekomendasi kuliner'],
+  'kecantikan':lang==='en'?['beauty routine','makeup tutorial']:['rutinitas kecantikan','tutorial makeup'],
+  'fashion':lang==='en'?['outfit ideas','style inspiration']:['ide outfit','inspirasi gaya'],
+  'travel & wisata':lang==='en'?['travel guide','hidden gems']:['panduan wisata','tempat menarik'],
+  'olahraga & fitness':lang==='en'?['fitness routine','workout tips']:['rutinitas fitness','tips latihan'],
+  'motivasi':lang==='en'?['daily motivation','inspirational story']:['motivasi harian','kisah inspiratif'],
+  'berita & opini':lang==='en'?['latest discussion','analysis and opinion']:['bahasan terkini','analisis dan opini'],
   'bisnis':lang==='en'?['business tips','growth strategy']:['tips bisnis','strategi berkembang'],
+  'promosi produk':lang==='en'?['product showcase','product benefits']:['pengenalan produk','manfaat produk'],
+  'teknologi':lang==='en'?['tech review','technology explained']:['ulasan teknologi','penjelasan teknologi'],
+  'diy & kreatif':lang==='en'?['creative project','do it yourself']:['proyek kreatif','kreasi sendiri'],
+  'produktivitas':lang==='en'?['productivity tips','time management']:['tips produktivitas','manajemen waktu'],
+  'otomotif':lang==='en'?['car review','automotive tips']:['ulasan kendaraan','tips otomotif'],
+  'konten religi':lang==='en'?['faith reflection','spiritual reminder']:['renungan','pengingat kebaikan'],
+  'konten keluarga':lang==='en'?['family moments','parenting tips']:['momen keluarga','tips keluarga'],
+  'asmr':lang==='en'?['relaxing sounds','satisfying audio']:['suara menenangkan','audio relaksasi'],
+  'live streaming':lang==='en'?['live session','live highlights']:['siaran langsung','cuplikan live'],
+  'shorts / reels':lang==='en'?['short video','quick highlights']:['video pendek','cuplikan singkat'],
   'umum':lang==='en'?['ideas and tips','beginner friendly']:['ide dan tips','cocok untuk pemula']
  };
  const styleIdeasList=styleIdeas[style]||styleIdeas['umum'];
