@@ -180,7 +180,16 @@ document.getElementById('generate').addEventListener('click',async()=>{
   {keys:['bisnis','jualan','usaha','marketing','uang','business','marketing'],id:['ide usaha','strategi pemasaran','tips jualan','pengembangan bisnis'],en:['business ideas','marketing strategy','selling tips','business growth']},
   {keys:['olahraga','fitness','gym','lari','workout','diet'],id:['tips olahraga','latihan pemula','rutinitas sehat','motivasi latihan'],en:['fitness tips','beginner workout','healthy routine','workout motivation']},
   {keys:['wisata','travel','liburan','pantai','hotel','jalan jalan'],id:['rekomendasi tempat','tips liburan','destinasi menarik','panduan perjalanan'],en:['places to visit','travel tips','destinations','travel guide']},
-  {keys:['musik','lagu','nyanyi','gitar','music','song','singing'],id:['musik indonesia','cover lagu','belajar musik','rekomendasi lagu'],en:['music','song cover','learn music','song recommendations']}
+  {keys:['musik','lagu','nyanyi','gitar','music','song','singing'],id:['musik indonesia','cover lagu','belajar musik','rekomendasi lagu','latihan vokal','tutorial alat musik','karya musik','aransemen lagu'],en:['music','song cover','learn music','song recommendations','vocal practice','instrument tutorial','music creation','song arrangement']},
+  {keys:['teknologi','hp','ponsel','android','iphone','aplikasi','gadget','laptop','technology','tech'],id:['review teknologi','tips penggunaan','fitur tersembunyi','panduan pemula','perbandingan gadget','tutorial aplikasi','kelebihan dan kekurangan','tips memilih perangkat'],en:['tech review','usage tips','hidden features','beginner guide','gadget comparison','app tutorial','pros and cons','device buying tips']},
+  {keys:['otomotif','mobil','motor','kendaraan','motoran','car','motorcycle'],id:['tips otomotif','perawatan kendaraan','review kendaraan','fitur kendaraan','tips berkendara','biaya perawatan','panduan pemula','pengalaman berkendara'],en:['automotive tips','vehicle maintenance','vehicle review','vehicle features','driving tips','maintenance costs','beginner guide','driving experience']},
+  {keys:['kucing','anjing','hewan','peliharaan','pet','cat','dog'],id:['tips merawat hewan','perilaku hewan','perawatan harian','makanan hewan','pengalaman pemilik','hewan lucu','panduan pemula'],en:['pet care tips','animal behavior','daily care','pet food','owner experience','cute animals','beginner guide']},
+  {keys:['tanaman','berkebun','kebun','bunga','plant','gardening'],id:['tips merawat tanaman','cara menanam','panduan berkebun','tanaman hias','perawatan harian','media tanam','tips pemula'],en:['plant care tips','how to plant','gardening guide','ornamental plants','daily care','potting mix','beginner tips']},
+  {keys:['foto','fotografi','kamera','video editing','edit video','editing','photography'],id:['tips fotografi','tutorial editing','pengaturan kamera','teknik pengambilan gambar','edit video pemula','komposisi visual','tips kreator'],en:['photography tips','editing tutorial','camera settings','filming techniques','beginner video editing','visual composition','creator tips']},
+  {keys:['parenting','anak','bayi','keluarga','family','parent'],id:['tips keluarga','aktivitas anak','pengalaman orang tua','ide kegiatan','belajar bersama','rutinitas keluarga'],en:['family tips','kids activities','parenting experience','activity ideas','learning together','family routine']},
+  {keys:['motivasi','inspirasi','sukses','mindset','motivation','self improvement'],id:['motivasi harian','kisah inspiratif','pengembangan diri','kebiasaan positif','belajar dari pengalaman','langkah kecil','refleksi diri'],en:['daily motivation','inspiring story','self development','positive habits','learning from experience','small steps','self reflection']},
+  {keys:['keuangan','investasi','menabung','finance','investment','saving'],id:['edukasi keuangan','tips menabung','perencanaan anggaran','dasar investasi','kebiasaan finansial','mengelola pengeluaran'],en:['financial education','saving tips','budget planning','investment basics','money habits','managing expenses']},
+  {keys:['gambar','melukis','kerajinan','diy','kreatif','craft','drawing','art'],id:['ide kreatif','tutorial langkah demi langkah','bahan yang dibutuhkan','proyek DIY','inspirasi karya','teknik dasar','kerajinan tangan'],en:['creative ideas','step by step tutorial','materials needed','DIY project','art inspiration','basic techniques','handmade crafts']}
  ];
  const match=topicRules.find(rule=>rule.keys.some(k=>topicText.includes(k)));
  const contextual=match?(lang==='en'?match.en:lang==='mix'?[...match.id.slice(0,2),...match.en.slice(0,2)]:match.id):[];
@@ -221,9 +230,39 @@ document.getElementById('generate').addEventListener('click',async()=>{
  };
  const styleIdeasList=styleIdeas[style]||styleIdeas['umum'];
  const suggestions=[...contextual,...styleIdeasList,...extras];
- const tags=[base,...contextual.slice(0,3).map(x=>base+' '+x),...extras.slice(0,2).map(x=>base+' '+x),...styleIdeasList.slice(0,1).map(x=>base+' '+x)].map(x=>'#'+clean(x).join('')).filter(x=>x.length>1);
- const keywords=[raw,...contextual.map(x=>base+' '+x),...styleIdeasList.map(x=>base+' '+x),...suggestions.map(x=>base+' '+x)].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,12);
- const hashtags=[...new Set(tags)].slice(0,8);
+ // Tambahkan banyak pilihan dengan tetap memprioritaskan topik, kategori, jenis konten, dan platform.
+ const platformTerms=({
+  YouTube:['video tutorial','konten YouTube','video lengkap'],
+  TikTok:['video pendek','konten TikTok','ide video'],
+  Instagram:['konten Instagram','reels','inspirasi konten'],
+  Facebook:['konten Facebook','video komunitas','berbagi informasi'],
+  X:['diskusi','opini','utas'],
+  LinkedIn:['wawasan profesional','pengembangan karier','insight bisnis'],
+  Pinterest:['ide inspirasi','referensi visual','ide kreatif'],
+  Threads:['obrolan','cerita singkat','diskusi komunitas'],
+  Reddit:['diskusi komunitas','pengalaman pengguna','tanya jawab'],
+  Tumblr:['blog','cerita kreatif','inspirasi visual'],
+  Snapchat:['cerita singkat','momen harian','video pendek']
+ })[platform]||[];
+ const categoryTerms=match?contextual:[];
+ const keywordCandidates=[
+  raw,...categoryTerms,...styleIdeasList,...extras,...platformTerms,
+  ...categoryTerms.map(x=>raw+' '+x),
+  ...styleIdeasList.map(x=>raw+' '+x),
+  ...extras.map(x=>raw+' '+x),
+  ...platformTerms.map(x=>raw+' '+x),
+  ...categoryTerms.map(x=>base+' '+x),
+  ...styleIdeasList.map(x=>base+' '+x)
+ ];
+ const keywords=[...new Set(keywordCandidates.map(x=>x.trim()).filter(Boolean))].slice(0,36);
+ const hashtagCandidates=[
+  base,...words.filter(w=>w.length>2),...categoryTerms,...styleIdeasList,
+  ...extras.slice(0,4),...platformTerms.slice(0,2),
+  ...categoryTerms.slice(0,8).map(x=>base+' '+x),
+  ...styleIdeasList.slice(0,5).map(x=>base+' '+x),
+  ...extras.slice(0,3).map(x=>base+' '+x)
+ ];
+ const hashtags=[...new Set(hashtagCandidates.map(x=>'#'+clean(x).join('')).filter(x=>/^#[a-z0-9]+$/i.test(x)&&x.length>2))].slice(0,30);
  lastHashtags=hashtags;lastKeywords=keywords;
  document.getElementById('hashtags').innerHTML=hashtags.map((x,i)=>'<button type="button" class="tag tag-choice selected" data-tag-type="hashtag" data-tag-index="'+i+'" aria-pressed="true">'+esc(x)+' ✓</button>').join('');
  document.getElementById('keywords').innerHTML=keywords.map((x,i)=>'<button type="button" class="tag tag-choice selected" data-tag-type="keyword" data-tag-index="'+i+'" aria-pressed="true">'+esc(x)+' ✓</button>').join('');
