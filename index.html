@@ -60,23 +60,7 @@ function normalizeAiResponse(payload){
 const clean=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ').trim().split(/\s+/).filter(Boolean);
 document.getElementById('generate').addEventListener('click',async()=>{
  const raw=document.getElementById('topic').value.trim();if(!raw){document.getElementById('topic').focus();return}
- let backendProblem='';
- try {
-  const response=await fetch('https://tagnivra-pg4e5jlau-laraazahara68-8259.vercel.app/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:raw,platform:platform.toLowerCase(),language:document.getElementById('language').value,style:({Umum:'general',Tutorial:'tutorial',Hiburan:'entertainment',Edukasi:'education',Review:'review',Gaming:'gaming',Bisnis:'business'})[document.getElementById('style').value]||'general'})});
-  const payload=await response.json();
-  const data=normalizeAiResponse(payload);
-  if(response.ok&&data&&Array.isArray(data.hashtags)&&Array.isArray(data.keywords)){
-   lastHashtags=data.hashtags;lastKeywords=data.keywords;
-   document.getElementById('hashtags').innerHTML=lastHashtags.map(x=>'<span class="tag">'+esc(x)+'</span>').join('');
-   document.getElementById('keywords').innerHTML=lastKeywords.map(x=>'<span class="tag">'+esc(x)+'</span>').join('');
-   lastText='Platform: '+platform+'\nTopik: '+raw+'\n\nHashtag:\n'+lastHashtags.join(' ')+'\n\nKeyword & tag:\n'+lastKeywords.join('\n');
-   document.getElementById('empty').hidden=true;document.getElementById('results').hidden=false;['copy','copyHash','copyKeys'].forEach(id=>document.getElementById(id).disabled=false);
-   saveHistory({topic:raw,platform,style:document.getElementById('style').value,language:document.getElementById('language').value,at:Date.now()});
-   document.getElementById('disclaimer').textContent=(data.note||'Saran AI berdasarkan konteks topik, bukan data tren real-time.')+' · Mesin: Tagnivra Engine AI';
-   return;
-  }
-  backendProblem=(payload&&typeof payload==='object'&&(payload.error||payload.detail))?(typeof payload.detail==='string'?payload.detail:JSON.stringify(payload.detail||payload.error)):('Respons AI tidak cocok atau HTTP '+response.status+' dari server AI');
- } catch(e) { backendProblem='Tidak dapat terhubung ke server AI ('+(e&&e.message?e.message:'koneksi gagal')+').'; }
+ // Mode lokal: tidak menghubungi server AI.
  const words=clean(raw),base=words.join(' '),styleValue=document.getElementById('style').value,style=styleValue.toLowerCase(),lang=document.getElementById('language').value;
  const idExtras=platform==='YouTube'?['tutorial','cara membuat','tips pemula','panduan lengkap','shorts']:platform==='TikTok'?['tips singkat','tutorial','fyp','ide konten','video pendek']:['tips','panduan','video menarik','komunitas','reels'];
  const enExtras=platform==='YouTube'?['how to','beginner guide','step by step','full guide','shorts']:platform==='TikTok'?['quick tips','tutorial','fyp','content ideas','short video']:['tips','guide','community','video ideas','reels'];
@@ -114,7 +98,7 @@ document.getElementById('generate').addEventListener('click',async()=>{
  lastText='Platform: '+platform+'\nTopik: '+raw+'\n\nHashtag:\n'+hashtags.join(' ')+'\n\nKeyword & tag:\n'+keywords.join('\n');
  document.getElementById('empty').hidden=true;document.getElementById('results').hidden=false;['copy','copyHash','copyKeys'].forEach(id=>document.getElementById(id).disabled=false);
  saveHistory({topic:raw,platform,style:styleValue,language:lang,at:Date.now()});
- document.getElementById('disclaimer').textContent='MODE CADANGAN: saran otomatis berbasis kata dari topik; bukan hasil AI dan bukan data tren aktual.'+(backendProblem?' Status AI: '+backendProblem:'');
+ document.getElementById('disclaimer').textContent='MODE LOKAL: saran otomatis berbasis kata dari topik; tidak memakai AI dan bukan data tren aktual.';
 });
 function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 async function copyText(text,buttonId,defaultLabel){const button=document.getElementById(buttonId);try{await navigator.clipboard.writeText(text)}catch(e){const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove()}button.textContent='Tersalin ✓';setTimeout(()=>button.textContent=defaultLabel,1600)}
