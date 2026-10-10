@@ -33,14 +33,39 @@ function renderHistory(){const el=document.getElementById('historyList'),items=g
 function saveHistory(item){const items=getHistory().filter(x=>!(x.topic===item.topic&&x.platform===item.platform));items.unshift(item);try{localStorage.setItem(HISTORY_KEY,JSON.stringify(items.slice(0,8)))}catch(e){}renderHistory()}
 renderHistory();
 document.querySelectorAll('.platform').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.platform').forEach(x=>x.classList.toggle('active',x===b));platform=b.dataset.platform}));
+function normalizeAiResponse(payload){
+ let value=payload;
+ for(let i=0;i<2&&typeof value==='string';i++){try{value=JSON.parse(value)}catch(e){break}}
+ if(value&&typeof value==='object'&&!Array.isArray(value)){
+  const nested=value.result??value.output??value.response??value.content??value.generated_text;
+  if(nested!==undefined&&(!Array.isArray(value.hashtags)||!Array.isArray(value.keywords))){
+   if(typeof nested==='string'){try{const parsed=JSON.parse(nested);if(parsed&&typeof parsed==='object')value={...value,...parsed}}catch(e){}}
+  }
+  const hashtags=Array.isArray(value.hashtags)?value.hashtags:(Array.isArray(value.hashtags_list)?value.hashtags_list:(Array.isArray(value.tags)?value.tags:[]));
+  const keywords=Array.isArray(value.keywords)?value.keywords:(Array.isArray(value.keywords_list)?value.keywords_list:(Array.isArray(value.tags_keywords)?value.tags_keywords:[]));
+  if(hashtags.length>=3&&keywords.length>=3)return {hashtags:hashtags.map(x=>String(x).trim()).filter(Boolean).slice(0,10),keywords:keywords.map(x=>String(x).trim()).filter(Boolean).slice(0,12),note:value.note||value.message||''};
+  const textValue=[value.result,value.output,value.response,value.content,value.generated_text,value.text].find(x=>typeof x==='string');
+  if(typeof textValue==='string')value=textValue;
+ }
+ if(typeof value==='string'){
+  const textValue=value.replace(/```(?:json)?/gi,'').trim();
+  try{const parsed=JSON.parse(textValue);if(parsed&&typeof parsed==='object')return normalizeAiResponse(parsed)}catch(e){}
+  const hashtags=[...new Set(textValue.match(/#[\p{L}\p{N}_]+/gu)||[])].slice(0,10);
+  const keywordSection=(textValue.match(/(?:keywords?|kata kunci|tag)(?:\s*[:：]\s*|\s*\n)([\s\S]*)/i)||[])[1]||'';
+  const keywords=[...new Set(keywordSection.split(/\n|[,;•]/).map(x=>x.replace(/^\s*(?:[-*•]\s*|\d+[.)]\s*)/,'').trim()).filter(x=>x.length>1&&!x.startsWith('#')&&!/^(hashtags?|keywords?|kata kunci)\s*[:：]?$/i.test(x)))].slice(0,12);
+  if(hashtags.length>=3&&keywords.length>=3)return {hashtags,keywords,note:'Hasil dari mesin AI berdasarkan topik; bukan data tren real-time.'};
+ }
+ return null;
+}
 const clean=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ').trim().split(/\s+/).filter(Boolean);
 document.getElementById('generate').addEventListener('click',async()=>{
  const raw=document.getElementById('topic').value.trim();if(!raw){document.getElementById('topic').focus();return}
  let backendProblem='';
  try {
-  const response=await fetch('https://tagnivra-pg4e5jlau-laraazahara68-8259.vercel.app/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:raw,platform,language:document.getElementById('language').value,style:document.getElementById('style').value})});
-  const data=await response.json();
-  if(response.ok&&data.ok&&Array.isArray(data.hashtags)&&Array.isArray(data.keywords)){
+  const response=await fetch('https://tagnivra-pg4e5jlau-laraazahara68-8259.vercel.app/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:raw,platform:platform.toLowerCase(),language:document.getElementById('language').value,style:({Umum:'general',Tutorial:'tutorial',Hiburan:'entertainment',Edukasi:'education',Review:'review',Gaming:'gaming',Bisnis:'business'})[document.getElementById('style').value]||'general'})});
+  const payload=await response.json();
+  const data=normalizeAiResponse(payload);
+  if(response.ok&&data&&Array.isArray(data.hashtags)&&Array.isArray(data.keywords)){
    lastHashtags=data.hashtags;lastKeywords=data.keywords;
    document.getElementById('hashtags').innerHTML=lastHashtags.map(x=>'<span class="tag">'+esc(x)+'</span>').join('');
    document.getElementById('keywords').innerHTML=lastKeywords.map(x=>'<span class="tag">'+esc(x)+'</span>').join('');
@@ -50,7 +75,7 @@ document.getElementById('generate').addEventListener('click',async()=>{
    document.getElementById('disclaimer').textContent=(data.note||'Saran AI berdasarkan konteks topik, bukan data tren real-time.')+' · Mesin: Tagnivra Engine AI';
    return;
   }
-  backendProblem=data.error||('HTTP '+response.status+' dari server AI');
+  backendProblem=(payload&&typeof payload==='object'&&(payload.error||payload.detail))?(typeof payload.detail==='string'?payload.detail:JSON.stringify(payload.detail||payload.error)):('Respons AI tidak cocok atau HTTP '+response.status+' dari server AI');
  } catch(e) { backendProblem='Tidak dapat terhubung ke server AI ('+(e&&e.message?e.message:'koneksi gagal')+').'; }
  const words=clean(raw),base=words.join(' '),styleValue=document.getElementById('style').value,style=styleValue.toLowerCase(),lang=document.getElementById('language').value;
  const idExtras=platform==='YouTube'?['tutorial','cara membuat','tips pemula','panduan lengkap','shorts']:platform==='TikTok'?['tips singkat','tutorial','fyp','ide konten','video pendek']:['tips','panduan','video menarik','komunitas','reels'];
