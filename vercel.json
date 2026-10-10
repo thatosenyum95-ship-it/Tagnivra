@@ -1,13 +1,38 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/health.js", "use": "@vercel/node" },
-    { "src": "api/generate.js", "use": "@vercel/node" },
-    { "src": "index.html", "use": "@vercel/static" }
+    {
+      "src": "api/health.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/generate.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/inspect-video.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    }
   ],
   "routes": [
-    { "src": "^/health/?$", "dest": "/api/health.js" },
-    { "src": "^/generate/?$", "dest": "/api/generate.js" },
-    { "handle": "filesystem" }
+    {
+      "src": "^/health/?$",
+      "dest": "/api/health.js"
+    },
+    {
+      "src": "^/generate/?$",
+      "dest": "/api/generate.js"
+    },
+    {
+      "src": "^/inspect-video/?$",
+      "dest": "/api/inspect-video.js"
+    },
+    {
+      "handle": "filesystem"
+    }
   ]
 }
