@@ -74,6 +74,26 @@ function parsePage(html, url) {
   tags = unique(tags.filter(x => !String(x).startsWith("#") && String(x).length < 160), 80);
   return { title: cleanText(title).slice(0, 500), description: cleanText(description), tags, hashtags };
 }
+async function fetchAllowedPage(startUrl) {
+  let target = new URL(startUrl);
+  for (let hop = 0; hop <= 4; hop++) {
+    if (target.protocol !== "https:" || !hostAllowed(target.hostname)) throw new Error("Redirect ke domain yang tidak didukung.");
+    const response = await fetch(target.href, {
+      method: "GET",
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; TagnivraMetadata/1.0)", "Accept": "text/html,application/xhtml+xml" },
+      redirect: "manual",
+      signal: AbortSignal.timeout(12000)
+    });
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("location");
+      if (!location || hop === 4) throw new Error("Terlalu banyak pengalihan.");
+      target = new URL(location, target);
+      continue;
+    }
+    return response;
+  }
+  throw new Error("Terlalu banyak pengalihan.");
+}
 module.exports = async function handler(req, res) {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("Cache-Control", "no-store");
@@ -87,12 +107,7 @@ module.exports = async function handler(req, res) {
   if (url.protocol !== "https:" || !hostAllowed(url.hostname)) return res.status(400).json({ error: "Hanya URL HTTPS dari platform video yang didukung yang diperbolehkan." });
   if (url.username || url.password || url.href.length > 1000) return res.status(400).json({ error: "URL tidak valid." });
   try {
-    const response = await fetch(url.href, {
-      method: "GET",
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; TagnivraMetadata/1.0)", "Accept": "text/html,application/xhtml+xml" },
-      redirect: "follow",
-      signal: AbortSignal.timeout(12000)
-    });
+    const response = await fetchAllowedPage(url.href);
     if (!response.ok) throw new Error("Platform merespons HTTP " + response.status);
     const finalUrl = new URL(response.url);
     if (!hostAllowed(finalUrl.hostname)) throw new Error("Tautan dialihkan ke domain yang tidak didukung.");
