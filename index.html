@@ -142,7 +142,8 @@ textarea{resize:vertical;min-height:90px}
   </div>
 </section>
 <section class="panel" id="favoritesPanel"><div class="resulthead"><strong>⭐ Favorit tersimpan</strong><button class="copy" id="clearFavorites">Hapus favorit</button></div><p class="hint">Favorit tersimpan di browser perangkat ini saja.</p><div id="favoritesList" class="tags"><span class="empty">Belum ada favorit.</span></div></section>
-\n<section class="panel"><div class="resulthead"><strong>Riwayat terbaru</strong><button class="copy" id="clearHistory">Hapus riwayat</button></div><p class="hint">Disimpan hanya di browser perangkat ini.</p><div id="historyList" class="tags"><span class="empty">Belum ada riwayat.</span></div></section><p class="foot">© 2026 Tagnivra · Dibuat dengan ♥ oleh <strong style="color:#d9d6ff">Lara Studio</strong> · Saran otomatis bukan jaminan viral. Periksa relevansi sebelum dipakai. · <a href="./privacy.html" style="color:#aab3d9">Kebijakan Privasi</a></p>
+
+<section class="panel"><div class="resulthead"><strong>Riwayat terbaru</strong><button class="copy" id="clearHistory">Hapus riwayat</button></div><p class="hint">Disimpan hanya di browser perangkat ini.</p><div id="historyList" class="tags"><span class="empty">Belum ada riwayat.</span></div></section><p class="foot">© 2026 Tagnivra · Dibuat dengan ♥ oleh <strong style="color:#d9d6ff">Lara Studio</strong> · Saran otomatis bukan jaminan viral. Periksa relevansi sebelum dipakai. · <a href="./privacy.html" style="color:#aab3d9">Kebijakan Privasi</a></p>
 </main>
 <script>
 let platform='YouTube',lastText='',lastHashtags=[],lastKeywords=[];
@@ -247,7 +248,7 @@ document.getElementById('generate').addEventListener('click',async()=>{
 });
 function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 async function copyText(text,buttonId,defaultLabel){const button=document.getElementById(buttonId);try{await navigator.clipboard.writeText(text)}catch(e){const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove()}button.textContent='Tersalin ✓';setTimeout(()=>button.textContent=defaultLabel,1600)}
-document.getElementById('copy').addEventListener('click',()=>copyText(lastText,'copy','Salin semua'));
+document.getElementById('copy').addEventListener('click',()=>copyText(currentResultsText(),'copy','Salin semua'));
 document.getElementById('copyHash').addEventListener('click',()=>copyText(lastHashtags.join(' '),'copyHash','Salin hashtag'));
 document.getElementById('copyKeys').addEventListener('click',()=>copyText(lastKeywords.join('\n'),'copyKeys','Salin keyword'));
 document.getElementById('clearHistory').addEventListener('click',()=>{try{localStorage.removeItem(HISTORY_KEY)}catch(e){}renderHistory()});
@@ -277,4 +278,5 @@ document.getElementById('inspectVideo').addEventListener('click',async()=>{const
 document.getElementById('copyInspectedDescription').addEventListener('click',()=>copyText(document.getElementById('inspectedDescription').textContent,'copyInspectedDescription','Salin deskripsi'));
 document.getElementById('copyInspection').addEventListener('click',()=>{if(!lastInspection)return;copyText('Platform: '+lastInspection.platform+'\nJudul: '+(lastInspection.title||'')+'\n\nDeskripsi:\n'+(lastInspection.description||'')+'\n\nHashtag:\n'+(lastInspection.hashtags||[]).join(' ')+'\n\nTag/keyword:\n'+(lastInspection.tags||[]).join('\n')+'\n\nCatatan: '+(lastInspection.note||''),'copyInspection','Salin semua hasil')});
 document.getElementById('useInspectedTopic').addEventListener('click',()=>{if(!lastInspection)return;document.getElementById('topic').value=lastInspection.title||'';document.getElementById('descriptionTopic').value=lastInspection.title||'';document.getElementById('contentSummary').value=lastInspection.description||'';document.querySelectorAll('.platform').forEach(x=>x.classList.toggle('active',x.dataset.platform===lastInspection.platform));platform=lastInspection.platform;document.getElementById('topic').scrollIntoView({behavior:'smooth',block:'center'})});
-\n</script></body></html>
+
+</script></body></html>
