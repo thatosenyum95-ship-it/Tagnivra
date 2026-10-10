@@ -26,7 +26,7 @@ app.add_middleware(
 
 class GenerateRequest(BaseModel):
     topic: str = Field(min_length=3, max_length=500)
-    platform: Literal["youtube", "tiktok", "facebook"] = "youtube"
+    platform: str = Field(default="youtube", max_length=20)
     language: Literal["id", "en", "mix"] = "id"
     style: str = Field(default="general", max_length=40)
 
@@ -58,11 +58,15 @@ async def generate(body: GenerateRequest, authorization: str | None = Header(def
     if API_TOKEN and authorization != f"Bearer {API_TOKEN}":
         raise HTTPException(status_code=401, detail="Unauthorized")
 
+    platform = body.platform.strip().lower()
+    platform_map = {"youtube": "youtube", "tiktok": "tiktok", "facebook": "facebook"}
+    if platform not in platform_map:
+        platform = "youtube"
     language = {"id": "Indonesian", "en": "English", "mix": "Indonesian and English"}[body.language]
     prompt = f"""
 You are Tagnivra, an assistant specialized in social-media keywords.
 Create useful, relevant keywords and hashtags from the user's topic. Do not claim these are trending or based on live popularity data.
-Platform: {body.platform}
+Platform: {platform}
 Output language: {language}
 Content type: {body.style}
 Topic: {body.topic}
@@ -96,7 +100,7 @@ Give 8-10 hashtags and 8-12 distinct keywords. Avoid duplicates, spam, misleadin
 
     return {
         "ok": True,
-        "platform": body.platform,
+        "platform": platform,
         "topic": body.topic,
         "hashtags": hashtags,
         "keywords": keywords,
