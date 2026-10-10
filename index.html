@@ -11,6 +11,40 @@
 :root{color-scheme:dark;--bg:#080b25;--panel:#111735;--line:#252d59;--text:#f5f7ff;--muted:#aab3d9;--cyan:#25e4f2;--purple:#a832ff}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0%,#21135a 0,transparent 45%),var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
 main{width:min(760px,100%);margin:auto;padding:24px 18px 50px}.brand{display:flex;align-items:center;gap:12px;margin:10px 0 34px}.mark{width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,#d72cff,#2867ff 55%,#00e5ef);display:grid;place-items:center;font-weight:900;font-size:28px;box-shadow:0 0 28px #563eff55}.brand strong{font-size:23px;letter-spacing:.3px}.brand small{display:block;color:var(--muted);font-size:12px}.hero h1{font-size:clamp(30px,7vw,48px);line-height:1.08;margin:0 0 12px}.gradient{background:linear-gradient(90deg,#e25bff,#6c8cff,#24e7f1);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{color:var(--muted);margin:0 0 25px}.panel{background:#101631eF;border:1px solid var(--line);border-radius:22px;padding:20px;margin-top:18px;box-shadow:0 14px 45px #0002}label{display:block;font-size:14px;color:#dce2ff;margin:0 0 8px}input,textarea,select{width:100%;background:#090e29;color:var(--text);border:1px solid #303965;border-radius:12px;padding:13px 14px;font:inherit;outline:none}input:focus,textarea:focus,select:focus{border-color:var(--cyan)}.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{margin-bottom:16px}.platforms{display:flex;flex-wrap:wrap;gap:8px}.platform{border:1px solid #38416f;background:#0b1230;color:#dce2ff;border-radius:99px;padding:9px 14px;cursor:pointer}.platform.active{background:linear-gradient(100deg,#6f28cf,#155fc5);border-color:#a3aaff;color:white}.primary{width:100%;border:0;border-radius:13px;padding:14px 18px;color:#fff;font-weight:750;font-size:16px;background:linear-gradient(100deg,#a72cff,#386dff,#12bdde);cursor:pointer}.primary:disabled{opacity:.6}.hint{font-size:12px;color:var(--muted);margin:10px 0 0}.resulthead{display:flex;justify-content:space-between;align-items:center;gap:10px}.copy{border:1px solid #394574;background:#171f44;color:white;border-radius:10px;padding:8px 12px;cursor:pointer}.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.tag{background:#1b2350;border:1px solid #343e78;color:#c8faff;border-radius:10px;padding:7px 10px;overflow-wrap:anywhere}.empty{color:var(--muted);font-size:14px}.foot{text-align:center;color:#7f8ab8;font-size:12px;margin:28px 0 0}@media(max-width:520px){.fields{grid-template-columns:1fr;gap:0}.panel{padding:16px}.brand{margin-bottom:26px}}
+
+/* Motion polish: lightweight, CSS-only, and friendly to mobile devices */
+body{overflow-x:hidden;isolation:isolate}
+body::before{content:"";position:fixed;z-index:-1;inset:-25%;pointer-events:none;background:radial-gradient(ellipse at 25% 25%,#772cff18 0,transparent 34%),radial-gradient(ellipse at 75% 40%,#18d9f51a 0,transparent 30%);animation:ambientDrift 18s ease-in-out infinite alternate}
+.brand{animation:fadeUp .65s cubic-bezier(.2,.75,.25,1) both}
+.mark{animation:markFloat 4s ease-in-out infinite;transition:transform .25s,box-shadow .25s}
+.mark:hover{transform:rotate(-7deg) scale(1.06);box-shadow:0 0 36px #563eff88}
+.hero{animation:fadeUp .75s .08s cubic-bezier(.2,.75,.25,1) both}
+.hero .gradient{background-size:200% 100%;animation:gradientFlow 7s ease-in-out infinite alternate}
+.panel{animation:fadeUp .7s cubic-bezier(.2,.75,.25,1) both;transition:border-color .25s,box-shadow .25s,transform .25s}
+.panel:nth-of-type(2){animation-delay:.12s}
+.panel:nth-of-type(3){animation-delay:.2s}
+.panel:nth-of-type(4){animation-delay:.28s}
+.panel:focus-within{border-color:#4b5aa0;box-shadow:0 16px 48px #0003,0 0 0 1px #5867aa22}
+.platform,.primary,.copy{transition:transform .18s ease,filter .18s ease,box-shadow .18s ease,border-color .18s ease}
+.platform:hover,.copy:hover{transform:translateY(-2px);border-color:#6575bc;filter:brightness(1.12)}
+.platform.active{box-shadow:0 4px 18px #704cff30}
+.primary{position:relative;overflow:hidden;box-shadow:0 7px 24px #593fff32}
+.primary::after{content:"";position:absolute;top:-70%;left:-45%;width:28%;height:240%;transform:rotate(24deg);background:linear-gradient(90deg,transparent,#ffffff36,transparent);transition:left .6s ease}
+.primary:hover{transform:translateY(-2px);filter:brightness(1.1);box-shadow:0 11px 28px #593fff50}
+.primary:hover::after{left:130%}
+.primary:active,.copy:active,.platform:active{transform:scale(.98)}
+input,textarea,select{transition:border-color .2s,box-shadow .2s}
+input:focus,textarea:focus,select:focus{box-shadow:0 0 0 3px #25e4f21c}
+.tag{animation:tagPop .35s cubic-bezier(.2,.8,.2,1) both;transition:transform .18s,border-color .18s,background .18s}
+.tag:hover{transform:translateY(-2px);border-color:#25e4f2;background:#242d60}
+[hidden]{display:none!important}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tagPop{from{opacity:0;transform:translateY(7px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes markFloat{0%,100%{transform:translateY(0);box-shadow:0 0 24px #563eff44}50%{transform:translateY(-3px);box-shadow:0 0 34px #563eff77}}
+@keyframes gradientFlow{from{background-position:0% 50%}to{background-position:100% 50%}}
+@keyframes ambientDrift{from{transform:translate3d(-1%,0,0) scale(1)}to{transform:translate3d(1%,1%,0) scale(1.04)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
 </style>
 </head>
 <body><main>
