@@ -126,21 +126,7 @@ textarea{resize:vertical;min-height:90px}
   <button class="primary" id="makeDescription">✦ Buat deskripsi</button>
   <div id="descriptionOutput" hidden><div class="resulthead"><h3>Deskripsi siap digunakan</h3><button class="copy" id="copyDescription">Salin deskripsi</button></div><div class="output-text" id="descriptionText"></div><div class="secondary-actions"><button class="copy" id="saveDescription">Simpan ke favorit</button><button class="copy" id="downloadDescription">Ekspor .txt</button></div><p class="mini-note">Periksa lagi agar setiap klaim sesuai dengan isi konten sebenarnya.</p></div>
 </section>
-<section class="panel" id="inspectorPanel">
-  <h2 class="feature-title">🔎 Periksa tag dari URL video</h2>
-  <p class="hint">Tempel URL video publik. Tagnivra akan mencoba membaca metadata yang memang tersedia secara publik; hasil tidak dijamin lengkap di semua platform.</p>
-  <div class="field"><label for="videoUrl">URL video</label><input id="videoUrl" type="url" maxlength="1000" placeholder="https://www.youtube.com/watch?v=..."></div>
-  <button class="primary" id="inspectVideo">Periksa video</button>
-  <div id="inspectStatus" class="status" hidden aria-live="polite"></div>
-  <div id="inspectResults" hidden>
-    <div class="field"><label>Judul</label><div class="output-text" id="inspectedTitle"></div></div>
-    <div class="field"><label>Deskripsi yang terbaca</label><div class="output-text" id="inspectedDescription"></div><button class="copy" id="copyInspectedDescription">Salin deskripsi</button></div>
-    <div class="field"><label>Hashtag yang ditemukan</label><div class="tags" id="inspectedHashtags"></div></div>
-    <div class="field"><label>Tag/keyword yang tersedia</label><div class="tags" id="inspectedKeywords"></div></div>
-    <p class="mini-note" id="inspectLimit"></p>
-    <div class="secondary-actions"><button class="copy" id="copyInspection">Salin semua hasil</button><button class="copy" id="useInspectedTopic">Gunakan judul di generator</button></div>
-  </div>
-</section>
+
 <section class="panel" id="favoritesPanel"><div class="resulthead"><strong>⭐ Favorit tersimpan</strong><button class="copy" id="clearFavorites">Hapus favorit</button></div><p class="hint">Favorit tersimpan di browser perangkat ini saja.</p><div id="favoritesList" class="tags"><span class="empty">Belum ada favorit.</span></div></section>
 
 <section class="panel"><div class="resulthead"><strong>Riwayat terbaru</strong><button class="copy" id="clearHistory">Hapus riwayat</button></div><p class="hint">Disimpan hanya di browser perangkat ini.</p><div id="historyList" class="tags"><span class="empty">Belum ada riwayat.</span></div></section><p class="foot">© 2026 Tagnivra · Dibuat dengan ♥ oleh <strong style="color:#d9d6ff">Lara Studio</strong> · Saran otomatis bukan jaminan viral. Periksa relevansi sebelum dipakai. · <a href="./privacy.html" style="color:#aab3d9">Kebijakan Privasi</a></p>
