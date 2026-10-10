@@ -45,8 +45,8 @@ class _GeneratorPageState extends State<GeneratorPage> {
   String get allResults => 'Platform: $platform\nTopik: ${topic.text.trim()}\n\nHashtag:\n${hashtags.join(' ')}\n\nKeyword & tag:\n${keywords.join('\n')}';
 
   List<String> words(String value) => value.toLowerCase()
-      .replaceAll(RegExp(r'[^a-z0-9\\s]'), ' ')
-      .trim().split(RegExp(r'\\s+')).where((s) => s.isNotEmpty).toList();
+      .replaceAll(RegExp(r'[^a-z0-9\s]'), ' ')
+      .trim().split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
 
   void generate() {
     final raw = topic.text.trim();
