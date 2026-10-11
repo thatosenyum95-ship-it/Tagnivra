@@ -248,18 +248,25 @@ jobs:
           gradle --no-daemon --stacktrace bundleRelease
           test -s app/build/outputs/bundle/release/app-release.aab
 
-      - name: Upload Android build artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload APK as a direct, non-ZIP artifact
+        uses: actions/upload-artifact@v7
         with:
-          name: tagnivra-android-builds
-          path: |
-            app/build/outputs/apk/debug/app-debug.apk
-            app/build/outputs/bundle/release/app-release.aab
+          path: app/build/outputs/apk/debug/app-debug.apk
+          archive: false
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload Play Store bundle when available
+        if: hashFiles('app/build/outputs/bundle/release/app-release.aab') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: tagnivra-play-store-aab
+          path: app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Publish direct APK download on GitHub Releases
-        if: github.event_name == 'workflow_dispatch'
+        if: success()
         uses: softprops/action-gh-release@v2
         with:
           tag_name: android-latest
