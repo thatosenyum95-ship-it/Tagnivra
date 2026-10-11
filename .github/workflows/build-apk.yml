@@ -44,7 +44,7 @@ jobs:
       - name: Create Android WebView project
         shell: bash
         run: |
-          mkdir -p app/src/main/java/com/tagnivra/app app/src/main/assets app/src/main/res/values
+          mkdir -p app/src/main/java/com/tagnivra/app app/src/main/assets app/src/main/res/values app/src/main/res/mipmap-mdpi app/src/main/res/mipmap-hdpi app/src/main/res/mipmap-xhdpi app/src/main/res/mipmap-xxhdpi app/src/main/res/mipmap-xxxhdpi
           cp index.html app/src/main/assets/index.html
           if [ -d assets ]; then cp -R assets/. app/src/main/assets/; fi
           if [ -f manifest.webmanifest ]; then cp manifest.webmanifest app/src/main/assets/manifest.webmanifest; fi
@@ -93,12 +93,35 @@ jobs:
           }
           EOF
 
+          # Create a launcher icon matching Tagnivra's neon purple-blue-cyan identity.
+          cat > /tmp/tagnivra-icon.svg <<'EOF'
+          <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+            <defs>
+              <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#10052f"/><stop offset="1" stop-color="#020b2b"/></linearGradient>
+              <linearGradient id="neon" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f22dff"/><stop offset=".52" stop-color="#315dff"/><stop offset="1" stop-color="#00f4e8"/></linearGradient>
+            </defs>
+            <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+            <rect x="18" y="18" width="476" height="476" rx="100" fill="none" stroke="url(#neon)" stroke-width="8"/>
+            <path d="M118 122 Q118 108 136 108 H353 Q373 108 363 129 L346 159 Q340 170 325 170 H137 Q118 170 118 153Z" fill="url(#neon)"/>
+            <path d="M213 166 H281 L252 365 Q249 384 229 384 H193 Q176 384 180 364Z" fill="url(#neon)"/>
+            <path d="M103 283 Q167 218 239 224 Q304 230 365 187 Q402 160 418 183 Q434 208 403 241 Q342 305 259 331 Q171 359 108 328 Q79 314 103 283Z" fill="none" stroke="url(#neon)" stroke-width="18" stroke-linecap="round"/>
+            <path d="M386 78 L398 104 L424 116 L398 128 L386 154 L374 128 L348 116 L374 104Z" fill="#20f7ee"/>
+            <g transform="translate(337 292) rotate(18)"><rect width="96" height="92" rx="20" fill="url(#neon)"/><path d="M31 24 L20 68 M58 24 L47 68 M12 40 H76 M7 56 H71" stroke="#fff" stroke-width="8" stroke-linecap="round"/></g>
+          </svg>
+          EOF
+          for spec in "mdpi 48" "hdpi 72" "xhdpi 96" "xxhdpi 144" "xxxhdpi 192"; do
+            set -- $spec
+            convert -background none /tmp/tagnivra-icon.svg -resize "$2x$2" "app/src/main/res/mipmap-$1/ic_launcher.png"
+          done
+
           cat > app/src/main/AndroidManifest.xml <<'EOF'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET" />
               <application
                   android:allowBackup="true"
                   android:label="Tagnivra"
+                  android:icon="@mipmap/ic_launcher"
+                  android:roundIcon="@mipmap/ic_launcher"
                   android:theme="@style/AppTheme"
                   android:usesCleartextTraffic="false">
                   <activity
@@ -182,6 +205,7 @@ jobs:
           unzip -l "$APK"
           unzip -l "$APK" | grep -q 'assets/index.html' || { echo "Web app assets are missing from the APK."; exit 1; }
           unzip -p "$APK" assets/index.html | grep -q 'Tagnivra' || { echo "Tagnivra web content was not packaged."; exit 1; }
+          unzip -l "$APK" | grep -q 'mipmap-xxxhdpi/ic_launcher.png' || { echo "Launcher icon is missing from APK."; exit 1; }
 
       - name: Publish direct APK download
         env:
