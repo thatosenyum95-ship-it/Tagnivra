@@ -63,6 +63,10 @@ jobs:
           cp -R assets/. app/src/main/assets/
           cp manifest.webmanifest app/src/main/assets/manifest.webmanifest
 
+          cat > gradle.properties <<'EOF'
+          android.useAndroidX=true
+          EOF
+
           cat > settings.gradle <<'EOF'
           pluginManagement {
               repositories {
