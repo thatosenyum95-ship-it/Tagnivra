@@ -129,14 +129,18 @@ jobs:
           }
           EOF
 
-          if [ -s assets/tagnivra-icon.png.base64 ]; then
-            base64 --decode assets/tagnivra-icon.png.base64 > /tmp/tagnivra-icon-source.png
-          elif [ -s assets/tagnivra-icon.svg ]; then
+          # Prefer the SVG launcher icon. The legacy .base64 file is malformed
+          # (it begins with PNG binary bytes), so decoding it caused "base64: invalid input".
+          if [ -s assets/tagnivra-icon.svg ]; then
             rsvg-convert -w 512 -h 512 assets/tagnivra-icon.svg -o /tmp/tagnivra-icon-source.png
+          elif [ -s assets/tagnivra-icon.png.base64 ]; then
+            base64 --decode assets/tagnivra-icon.png.base64 > /tmp/tagnivra-icon-source.png
           else
             echo "No Tagnivra launcher icon source was found."
             exit 1
           fi
+          test -s /tmp/tagnivra-icon-source.png
+          identify /tmp/tagnivra-icon-source.png
 
           for spec in "mdpi 48" "hdpi 72" "xhdpi 96" "xxhdpi 144" "xxxhdpi 192"; do
             set -- $spec
