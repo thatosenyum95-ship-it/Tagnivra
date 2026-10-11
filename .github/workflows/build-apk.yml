@@ -1,16 +1,25 @@
-name: Build Tagnivra APK
+name: Build Tagnivra Android APK and Play Store bundle
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'index.html'
+      - 'assets/**'
+      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build-apk:
+  build-android:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -32,17 +41,16 @@ jobs:
             exit 1
           fi
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          "$SDKMANAGER" --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Install Gradle
         shell: bash
         run: |
-          curl --fail --location --retry 3 https://services.gradle.org/distributions/gradle-8.9-bin.zip --output /tmp/gradle-8.9-bin.zip
-          unzip -q /tmp/gradle-8.9-bin.zip -d /tmp
-          echo "/tmp/gradle-8.9/bin" >> "$GITHUB_PATH"
+          curl --fail --location --retry 3 https://services.gradle.org/distributions/gradle-8.11.1-bin.zip --output /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp
+          echo "/tmp/gradle-8.11.1/bin" >> "$GITHUB_PATH"
 
       - name: Install icon rendering tools
-        shell: bash
         run: |
           sudo apt-get update
           sudo apt-get install -y imagemagick librsvg2-bin
@@ -52,8 +60,8 @@ jobs:
         run: |
           mkdir -p app/src/main/java/com/tagnivra/app app/src/main/assets app/src/main/res/values app/src/main/res/mipmap-mdpi app/src/main/res/mipmap-hdpi app/src/main/res/mipmap-xhdpi app/src/main/res/mipmap-xxhdpi app/src/main/res/mipmap-xxxhdpi
           cp index.html app/src/main/assets/index.html
-          if [ -d assets ]; then cp -R assets/. app/src/main/assets/; fi
-          if [ -f manifest.webmanifest ]; then cp manifest.webmanifest app/src/main/assets/manifest.webmanifest; fi
+          cp -R assets/. app/src/main/assets/
+          cp manifest.webmanifest app/src/main/assets/manifest.webmanifest
 
           cat > settings.gradle <<'EOF'
           pluginManagement {
@@ -76,7 +84,7 @@ jobs:
 
           cat > build.gradle <<'EOF'
           plugins {
-              id 'com.android.application' version '8.7.3' apply false
+              id 'com.android.application' version '8.10.1' apply false
           }
           EOF
 
@@ -85,29 +93,51 @@ jobs:
               id 'com.android.application'
           }
 
+          def releaseKeystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+
           android {
               namespace 'com.tagnivra.app'
-              compileSdk 35
+              compileSdk 36
 
               defaultConfig {
                   applicationId 'com.tagnivra.app'
                   minSdk 23
-                  targetSdk 28
+                  targetSdk 36
                   versionCode 1
                   versionName '1.0.0'
+              }
+
+              if (releaseKeystorePath != null && !releaseKeystorePath.isEmpty()) {
+                  signingConfigs {
+                      release {
+                          storeFile file(releaseKeystorePath)
+                          storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                          keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                          keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+                      }
+                  }
+              }
+
+              buildTypes {
+                  release {
+                      if (releaseKeystorePath != null && !releaseKeystorePath.isEmpty()) {
+                          signingConfig signingConfigs.release
+                      }
+                      minifyEnabled false
+                  }
               }
           }
           EOF
 
-          # Render the checked-in Tagnivra launcher artwork. Prefer the original PNG if present;
-          # otherwise render the repository SVG so the Android build never fails on a missing optional file.
           if [ -s assets/tagnivra-icon.png.base64 ]; then
             base64 --decode assets/tagnivra-icon.png.base64 > /tmp/tagnivra-icon-source.png
           elif [ -s assets/tagnivra-icon.svg ]; then
             rsvg-convert -w 512 -h 512 assets/tagnivra-icon.svg -o /tmp/tagnivra-icon-source.png
           else
-            echo "No Tagnivra launcher icon source was found."; exit 1
+            echo "No Tagnivra launcher icon source was found."
+            exit 1
           fi
+
           for spec in "mdpi 48" "hdpi 72" "xhdpi 96" "xxhdpi 144" "xxxhdpi 192"; do
             set -- $spec
             convert /tmp/tagnivra-icon-source.png -resize "$2x$2" "app/src/main/res/mipmap-$1/ic_launcher.png"
@@ -192,31 +222,39 @@ jobs:
           }
           EOF
 
-      - name: Build debug APK
-        shell: bash
+      - name: Build debug APK for device testing
         run: |
-          /tmp/gradle-8.9/bin/gradle --no-daemon --stacktrace assembleDebug
+          gradle --no-daemon --stacktrace assembleDebug
           APK="app/build/outputs/apk/debug/app-debug.apk"
           test -s "$APK"
-          SIZE="$(stat -c%s "$APK")"
-          echo "APK size: $SIZE bytes"
           unzip -t "$APK"
-          unzip -l "$APK"
-          unzip -l "$APK" | grep -q 'assets/index.html' || { echo "Web app assets are missing from the APK."; exit 1; }
-          unzip -p "$APK" assets/index.html | grep -q 'Tagnivra' || { echo "Tagnivra web content was not packaged."; exit 1; }
-          unzip -l "$APK" | grep -q 'res/mipmap-xxxhdpi-v4/ic_launcher.png' || { echo "Launcher icon is missing from APK."; exit 1; }
+          unzip -l "$APK" | grep -q 'assets/index.html'
+          unzip -l "$APK" | grep -q 'res/mipmap-xxxhdpi-v4/ic_launcher.png'
 
-      - name: Publish direct APK download
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: ${{ github.repository }}
-          COMMIT_SHA: ${{ github.sha }}
-        shell: bash
+      - name: Prepare release signing key
+        if: env.ANDROID_KEYSTORE_BASE64 != '' && env.ANDROID_KEYSTORE_PASSWORD != '' && env.ANDROID_KEY_ALIAS != '' && env.ANDROID_KEY_PASSWORD != ''
         run: |
-          SHORT_SHA="${COMMIT_SHA:0:7}"
-          TAG="apk-${SHORT_SHA}"
-          APK="app/build/outputs/apk/debug/app-debug.apk"
-          gh release create "$TAG" "$APK#Tagnivra.apk" \
-            --repo "$REPOSITORY" \
-            --title "Tagnivra APK ${SHORT_SHA}" \
-            --notes "APK Android Tagnivra versi 1.0.0. Dibangun dari commit ${COMMIT_SHA}. Install langsung di Android; ini file APK, bukan ZIP."
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/tagnivra-upload-key.jks"
+          test -s "$RUNNER_TEMP/tagnivra-upload-key.jks"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/tagnivra-upload-key.jks" >> "$GITHUB_ENV"
+
+      - name: Build Play Store App Bundle
+        if: env.ANDROID_KEYSTORE_BASE64 != '' && env.ANDROID_KEYSTORE_PASSWORD != '' && env.ANDROID_KEY_ALIAS != '' && env.ANDROID_KEY_PASSWORD != ''
+        run: |
+          gradle --no-daemon --stacktrace bundleRelease
+          test -s app/build/outputs/bundle/release/app-release.aab
+
+      - name: Upload Android build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tagnivra-android-builds
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Explain missing Play Store signing setup
+        if: env.ANDROID_KEYSTORE_BASE64 == '' || env.ANDROID_KEYSTORE_PASSWORD == '' || env.ANDROID_KEY_ALIAS == '' || env.ANDROID_KEY_PASSWORD == ''
+        run: |
+          echo "::warning::APK testing build is ready. A signed Play Store AAB was skipped because Android signing secrets are not configured. See docs/google-play-release.md."
