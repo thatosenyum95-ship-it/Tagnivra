@@ -1,9 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#070b28"/><stop offset=".55" stop-color="#11134a"/><stop offset="1" stop-color="#071d43"/></linearGradient><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f044f6"/><stop offset=".5" stop-color="#4c4cff"/><stop offset="1" stop-color="#00e8f2"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="10"/></filter></defs>
-<rect width="512" height="512" rx="108" fill="url(#bg)"/><rect x="20" y="20" width="472" height="472" rx="94" fill="none" stroke="url(#g)" stroke-width="5" opacity=".9"/>
-<path d="M96 174 Q100 154 126 154 H366 Q389 154 377 178 L356 216 Q350 227 330 227 H111 Q84 227 96 204Z" fill="url(#g)"/>
-<path d="M213 221 L293 221 L270 378 Q266 402 245 417 L211 441 Q188 456 192 426Z" fill="url(#g)"/>
-<path d="M92 333 C151 278 235 290 318 248 S397 204 375 186" fill="none" stroke="url(#g)" stroke-width="21" stroke-linecap="round"/>
-<g transform="translate(330 315) rotate(18)"><path d="M0 28 Q0 0 26 0 H93 Q116 0 116 24 V92 Q116 115 92 115 H24 Q0 115 0 91Z" fill="url(#g)"/><circle cx="91" cy="19" r="7" fill="#070b28"/><path d="M38 39 L38 79 M65 39 L65 79 M23 53 H80 M23 68 H80" stroke="#fff" stroke-width="9" stroke-linecap="round"/></g>
-<path d="M390 91 L401 119 L429 130 L401 141 L390 169 L379 141 L351 130 L379 119Z" fill="#28edf5"/>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#050820"/><stop offset=".55" stop-color="#080d2b"/><stop offset="1" stop-color="#071b3e"/></linearGradient>
+ <linearGradient id="neon" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fa48f2"/><stop offset=".46" stop-color="#463cff"/><stop offset="1" stop-color="#00f0ee"/></linearGradient>
+ <linearGradient id="bar" x1="0" y1="0" x2="1" y2=".2"><stop stop-color="#f84bed"/><stop offset=".48" stop-color="#4657ff"/><stop offset="1" stop-color="#00f2ed"/></linearGradient>
+ <filter id="glow" x="-.3" y="-.3" width="1.6" height="1.6"><feGaussianBlur stdDeviation="8"/></filter>
+</defs>
+<rect width="512" height="512" rx="104" fill="url(#bg)"/>
+<rect x="25" y="22" width="462" height="468" rx="95" fill="none" stroke="url(#neon)" stroke-width="10" opacity=".42" filter="url(#glow)"/>
+<rect x="25" y="22" width="462" height="468" rx="95" fill="none" stroke="url(#neon)" stroke-width="3.5"/>
+<g transform="translate(0,-18)">
+ <path d="M125 120 Q139 98 163 98 H338 Q361 98 350 122 L335 151 Q328 165 309 165 H118 Q100 165 110 145Z" fill="url(#bar)"/>
+ <path d="M205 165 H270 L246 322 Q243 341 226 353 L202 370 Q184 382 188 358Z" fill="url(#neon)"/>
+ <path d="M96 262 C126 214 187 215 258 190 S382 140 360 117" fill="none" stroke="url(#neon)" stroke-width="18" stroke-linecap="round"/>
+ <path d="M386 70 L396 96 L422 106 L396 116 L386 142 L376 116 L350 106 L376 96Z" fill="#20f0ed"/>
+ <g transform="translate(322 226) rotate(18)">
+  <path d="M0 24 Q0 0 23 0 H83 Q106 0 106 23 V83 Q106 106 83 106 H23 Q0 106 0 83Z" fill="url(#neon)"/>
+  <circle cx="84" cy="17" r="6.5" fill="#080d2b"/>
+  <path d="M37 34 L37 74 M61 34 L61 74 M22 48 H76 M22 63 H76" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+ </g>
+</g>
+<text x="256" y="438" text-anchor="middle" font-family="DejaVu Sans,Arial,sans-serif" font-size="49" font-weight="800" letter-spacing="-2" fill="#fff">Tagniv<tspan fill="#06e7ef">ra</tspan></text>
 </svg>
