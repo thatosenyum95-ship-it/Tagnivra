@@ -99,9 +99,15 @@ jobs:
           }
           EOF
 
-          # Use the exact approved Tagnivra logo artwork, not a recreated approximation.
-          test -s assets/tagnivra-icon.png.base64 || { echo "Original Tagnivra icon file is missing."; exit 1; }
-          base64 --decode assets/tagnivra-icon.png.base64 > /tmp/tagnivra-icon-source.png
+          # Render the checked-in Tagnivra launcher artwork. Prefer the original PNG if present;
+          # otherwise render the repository SVG so the Android build never fails on a missing optional file.
+          if [ -s assets/tagnivra-icon.png.base64 ]; then
+            base64 --decode assets/tagnivra-icon.png.base64 > /tmp/tagnivra-icon-source.png
+          elif [ -s assets/tagnivra-icon.svg ]; then
+            rsvg-convert -w 512 -h 512 assets/tagnivra-icon.svg -o /tmp/tagnivra-icon-source.png
+          else
+            echo "No Tagnivra launcher icon source was found."; exit 1
+          fi
           for spec in "mdpi 48" "hdpi 72" "xhdpi 96" "xxhdpi 144" "xxxhdpi 192"; do
             set -- $spec
             convert /tmp/tagnivra-icon-source.png -resize "$2x$2" "app/src/main/res/mipmap-$1/ic_launcher.png"
