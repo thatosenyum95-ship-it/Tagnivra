@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-android:
@@ -253,6 +253,17 @@ jobs:
             app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish direct APK download on GitHub Releases
+        if: github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-latest
+          name: Tagnivra Android APK (latest)
+          prerelease: true
+          make_latest: false
+          overwrite_files: true
+          files: app/build/outputs/apk/debug/app-debug.apk
 
       - name: Explain missing Play Store signing setup
         if: env.ANDROID_KEYSTORE_BASE64 == '' || env.ANDROID_KEYSTORE_PASSWORD == '' || env.ANDROID_KEY_ALIAS == '' || env.ANDROID_KEY_PASSWORD == ''
