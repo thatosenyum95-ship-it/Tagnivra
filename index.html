@@ -348,8 +348,8 @@ document.getElementById('makeDescription').addEventListener('click',()=>{
  const en=lang==='en';
  const mixed=lang==='mix';
  const say=(id,english)=>en?english:id;
- const cleanSummary=summary.replace(/\\s+/g,' ').replace(/\\s*([.!?])\\s*/g,'$1 ').trim();
- const sentences=cleanSummary?cleanSummary.split(/(?<=[.!?])\\s+/).filter(Boolean):[];
+ const cleanSummary=summary.replace(/\s+/g,' ').replace(/\s*([.!?])\s*/g,'$1 ').trim();
+ const sentences=cleanSummary?cleanSummary.split(/(?<=[.!?])\s+/).filter(Boolean):[];
  const detail=cleanSummary||say(
   'Konten ini berfokus pada topik “'+topic+'”. Tambahkan detail isi, proses, contoh, atau hasil yang benar-benar ditampilkan agar deskripsinya lebih spesifik dan tidak sekadar mengulang judul.',
   'This content focuses on “'+topic+'”. Add the actual details, process, examples, or results shown so the description can be more specific than the title alone.'
@@ -417,8 +417,8 @@ document.getElementById('makeDescription').addEventListener('click',()=>{
   none:''
  };
  if(calls[cta]) paragraphs.push(calls[cta]);
- let desc=(topic?topic+'\\n\\n':'')+paragraphs.filter(Boolean).join('\\n\\n');
- if(mixed) desc=desc+'\\n\\n'+(summary?'Topik dan detail utama di atas mengikuti isi yang kamu masukkan.':'Tambahkan ringkasan isi agar deskripsi berikutnya lebih spesifik.');
+ let desc=(topic?topic+'\n\n':'')+paragraphs.filter(Boolean).join('\n\n');
+ if(mixed) desc=desc+'\n\n'+(summary?'Topik dan detail utama di atas mengikuti isi yang kamu masukkan.':'Tambahkan ringkasan isi agar deskripsi berikutnya lebih spesifik.');
  currentDescription=desc;
  document.getElementById('descriptionText').textContent=desc;
  document.getElementById('descriptionOutput').hidden=false;
