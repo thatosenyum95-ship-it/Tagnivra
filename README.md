@@ -1,6 +1,21 @@
 # Tagnivra
 
-Tagnivra generates topic-relevant keywords and hashtags for YouTube, TikTok, and Facebook. It does not claim that generated tags are trending or popular.
+Tagnivra generates topic-relevant keywords and hashtags for social media. The repository includes the web app and an Android WebView packaging workflow.
+
+## Android APK and Google Play preparation
+
+The workflow `.github/workflows/build-apk.yml` builds a debug APK on pushes to `main` that change the web app, and when manually run from GitHub Actions. The APK is uploaded as a workflow artifact for 14 days.
+
+To build a **signed Android App Bundle (.aab)** for Google Play, configure these repository Actions secrets first:
+
+- `ANDROID_KEYSTORE_BASE64`: base64-encoded upload keystore file
+- `ANDROID_KEYSTORE_PASSWORD`: keystore password
+- `ANDROID_KEY_ALIAS`: upload key alias
+- `ANDROID_KEY_PASSWORD`: upload key password
+
+Keep the keystore and passwords private. Do not commit them to this repository. Full setup, testing, and Play Console checklist: [docs/google-play-release.md](docs/google-play-release.md).
+
+The Android build targets API 36, the current requirement for new Google Play apps from 31 August 2026. A successful build does not itself publish the app; the signed AAB must still be uploaded and reviewed in Play Console.
 
 ## AI provider order
 
@@ -46,4 +61,4 @@ A successful response contains hashtags, keywords, provider, and model.
 
 ## Important
 
-Committing code to GitHub does not deploy it to Cloudflare automatically unless the Worker is configured with a deployment pipeline. After updating the repository, deploy the Worker code in Cloudflare and add secrets there. API usage can have quotas and charges depending on the provider/account.
+Committing code to GitHub does not deploy the Worker automatically unless it has a deployment pipeline. After updating the repository, deploy the Worker code in Cloudflare and add secrets there. API usage can have quotas and charges depending on the provider/account.
