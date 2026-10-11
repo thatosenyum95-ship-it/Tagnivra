@@ -75,8 +75,6 @@ class _GeneratorPageState extends State<GeneratorPage> {
       decoration: const BoxDecoration(gradient: RadialGradient(center: Alignment.topRight, radius: 1.25, colors: [Color(0xFF21135A), navy])),
       child: SafeArea(child: ListView(padding: const EdgeInsets.fromLTRB(18, 20, 18, 32), children: [
         Row(children: [
-          ClipRRect(borderRadius: BorderRadius.circular(13), child: SvgPicture.asset('assets/tagnivra-header-logo.svg', width: 44, height: 44, fit: BoxFit.contain)),
-          const SizedBox(width: 12),
           const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Tagnivra', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)), Text('AI TAG & HASHTAG STUDIO', style: TextStyle(fontSize: 11, color: Color(0xFFAAB3D9), letterSpacing: 1))]),
         ]),
         const SizedBox(height: 28),
