@@ -382,11 +382,13 @@ jobs:
           test -s "$RUNNER_TEMP/tagnivra-upload-key.jks"
           echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/tagnivra-upload-key.jks" >> "$GITHUB_ENV"
 
-      - name: Build Play Store App Bundle
+      - name: Build signed Release APK and Play Store App Bundle
         if: env.ANDROID_KEYSTORE_BASE64 != '' && env.ANDROID_KEYSTORE_PASSWORD != '' && env.ANDROID_KEY_ALIAS != '' && env.ANDROID_KEY_PASSWORD != ''
         run: |
-          gradle --no-daemon --stacktrace bundleRelease
+          gradle --no-daemon --stacktrace assembleRelease bundleRelease
+          test -s app/build/outputs/apk/release/app-release.apk
           test -s app/build/outputs/bundle/release/app-release.aab
+          apksigner verify --verbose app/build/outputs/apk/release/app-release.apk
 
       - name: Upload APK as a direct, non-ZIP artifact
         uses: actions/upload-artifact@v7
@@ -414,7 +416,9 @@ jobs:
           prerelease: true
           make_latest: false
           overwrite_files: true
-          files: app/build/outputs/apk/debug/app-debug.apk
+          files: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/apk/release/app-release.apk
 
       - name: Explain missing Play Store signing setup
         if: env.ANDROID_KEYSTORE_BASE64 == '' || env.ANDROID_KEYSTORE_PASSWORD == '' || env.ANDROID_KEY_ALIAS == '' || env.ANDROID_KEY_PASSWORD == ''
